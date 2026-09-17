@@ -13,12 +13,15 @@ export const SEVERITY_ORDER = ['info', 'watch', 'elevated', 'high'] as const;
 export type Severity = (typeof SEVERITY_ORDER)[number];
 
 /**
- * The SOHI status ramp, inverted so the darkest step is the worst class.
+ * Status colour — the Water Framework Directive's statutory colour code.
  *
- * On an alerting dashboard, visual weight should follow need-for-attention.
- * A conventional sequential ramp lets its lightest step recede toward the
- * surface as "near zero", which here would make the most degraded sites the
- * faintest marks on the map — exactly backwards.
+ * Blue / green / yellow / orange / red for high / good / moderate / poor / bad is
+ * what every river status map in Europe uses, and what a child already reads as
+ * "good to bad". The steps in `theme.css` were tuned until they cleared
+ * colour-blind separation, a normal-vision difference floor and contrast on the
+ * chart surface. Yellow cannot sit inside the lightness band — that is what
+ * yellow is — so colour is never the only carrier: every use pairs it with the
+ * number, a mascot face, or a written label.
  */
 export const statusColor = (status: string | null | undefined): string =>
   `var(--status-${status && STATUS_ORDER.includes(status as StatusClass) ? status : 'moderate'})`;

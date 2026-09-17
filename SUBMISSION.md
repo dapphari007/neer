@@ -13,12 +13,12 @@ One Health insights"_ against the problem that _"stream data is hard to interpre
 clearly show patterns, risks, or health impact."_ It asks for dashboards, maps, trend analysis, and
 One Health insight summaries.
 
-| Track asks for               | Neer delivers                                                                                                                   |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Dashboards                   | Overview with ranked sites, stat tiles and priority findings; site detail with score decomposition and confidence breakdown     |
-| Maps                         | MapLibre map of twelve Coimbra sites, coloured by a validated ordinal ramp, with a graceful fallback when tiles are unreachable |
-| Trend analysis               | Daily index series with credible-interval ribbon, 7-day trailing mean, raw values retained, and rainfall on a shared time axis  |
-| One Health insight summaries | Nine deterministic rules producing evidence-bearing findings, each rendered for citizen, municipality and public health officer |
+| Track asks for               | Neer delivers                                                                                                                                                                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dashboards                   | Overview with ranked sites, stat tiles and priority findings; site detail with score decomposition and confidence breakdown                                                                                                   |
+| Maps                         | MapLibre map of twelve Coimbra sites, coloured in the WFD statutory colour code (validated for colour-blind separation), glowing waterways, a sticker-marking game layer, with a graceful fallback when tiles are unreachable |
+| Trend analysis               | Daily index series with credible-interval ribbon, 7-day trailing mean, raw values retained, and rainfall on a shared time axis                                                                                                |
+| One Health insight summaries | Nine deterministic rules producing evidence-bearing findings, each rendered for citizen, municipality and public health officer                                                                                               |
 
 ---
 
@@ -97,12 +97,13 @@ from a system whose reasoning cannot be audited.
 
 ## 4. Target users
 
-| User                             | What they get                                                               | Example                                                                                                                                                                                                      |
-| -------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Citizens & volunteers**        | Whether the water is safe to touch, and which observation to record next    | _"Avoid contact for 48 hours after heavy rain. Keep dogs out — they are far more likely than people to ingest a lethal cyanotoxin dose."_                                                                    |
-| **Municipalities**               | Which reach to inspect, and what to look for                                | _"Inspect sewer overflow structures in the Covões catchment within 48 hours. Check for blockages, misconnections and consent breaches."_                                                                     |
-| **Public health authorities**    | Whether exposure warrants surveillance, with the regulatory yardstick named | _"Treat as elevated faecal exposure at an access point with recorded public contact. Directive inland limits are 500 cfu/100 ml E. coli — Neer cannot measure these, so confirmatory sampling is required."_ |
-| **Citizen-science coordinators** | Where coverage gaps undermine the network                                   | _"No observations for 34 days at a site with public access. Absence of findings reflects absence of observation, not absence of risk."_                                                                      |
+| User                               | What they get                                                                                                                                                 | Example                                                                                                                                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Children, families, classrooms** | Explorer mode: a mascot whose face shows how each stream feels, real-life comparisons built from real measurements, a game map to mark, one-click share cards | _"About as cloudy as tea with milk — turbidity 32 NTU."_                                                                                                                                                     |
+| **Citizens & volunteers**          | Whether the water is safe to touch, and which observation to record next                                                                                      | _"Avoid contact for 48 hours after heavy rain. Keep dogs out — they are far more likely than people to ingest a lethal cyanotoxin dose."_                                                                    |
+| **Municipalities**                 | Which reach to inspect, and what to look for                                                                                                                  | _"Inspect sewer overflow structures in the Covões catchment within 48 hours. Check for blockages, misconnections and consent breaches."_                                                                     |
+| **Public health authorities**      | Whether exposure warrants surveillance, with the regulatory yardstick named                                                                                   | _"Treat as elevated faecal exposure at an access point with recorded public contact. Directive inland limits are 500 cfu/100 ml E. coli — Neer cannot measure these, so confirmatory sampling is required."_ |
+| **Citizen-science coordinators**   | Where coverage gaps undermine the network                                                                                                                     | _"No observations for 34 days at a site with public access. Absence of findings reflects absence of observation, not absence of risk."_                                                                      |
 
 ---
 

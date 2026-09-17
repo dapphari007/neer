@@ -13,8 +13,9 @@ docker compose up -d
 pnpm db:migrate && pnpm db:seed && pnpm --filter @neer/tools compute
 ```
 
-Open http://localhost:5173. Use **light mode** — it reads better on compressed video. Check the
-basemap has loaded before you start; it occasionally needs a reload.
+Open http://localhost:5173. Check the basemap has loaded before you start; it occasionally needs a
+reload. The app opens in **Explorer** mode — the script starts there and switches to **Scientist**
+at 1:00.
 
 Have a second window on `docs/INDEX_METHODOLOGY.md` and a terminal ready.
 
@@ -35,16 +36,21 @@ Have a second window on `docs/INDEX_METHODOLOGY.md` and a terminal ready.
 
 ## 0:25–1:00 · What it produces
 
-**Shot:** the overview. Let the map and the ranked list land before speaking.
+**Shot:** Explorer home. Scroll to the map, drop one sticker, open the pulsing stream, then open
+its share card. Keep it moving — fifteen seconds.
 
-> "Neer turns those observations into three things nobody currently gets.
+> "Neer turns those observations into something a ten-year-old can read. Every stream gets a score,
+> a face and a colour — the Water Framework Directive's own colour code. 'Turbidity 32 NTU' becomes
+> 'about as cloudy as tea with milk', with the real number underneath. Kids mark what they spot,
+> and one tap makes a shareable card — with the demo-data label drawn into the image itself.
 >
-> A defensible composite index — twelve sites near Coimbra, a real OneAquaHealth pilot city, ranked
-> worst first. Darker means worse: visual weight follows the need for attention.
->
-> Honest uncertainty — every score carries a credible interval.
->
-> And One Health findings, each written for a different reader."
+> Same data, second front door."
+
+**Switch to Scientist mode.**
+
+> "For the people who have to act on it: a defensible composite index, twelve sites near Coimbra —
+> a real OneAquaHealth pilot city — ranked worst first. Honest uncertainty on every score. And One
+> Health findings, each written for a different reader."
 
 **Point at the provenance banner.**
 

@@ -68,7 +68,7 @@ export function SiteDetail({ site, onBack }: { site: SiteSummary; onBack: () => 
 
       <header style={{ marginTop: 12, marginBottom: 16 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' }}>
-          <h1 style={{ fontSize: 22 }}>{site.name}</h1>
+          <h1 style={{ fontSize: 32 }}>{site.name}</h1>
           <span className="pill">
             <i className="swatch" style={{ background: statusColor(site.status) }} />
             {statusLabel(site.status)}
@@ -151,7 +151,7 @@ export function SiteDetail({ site, onBack }: { site: SiteSummary; onBack: () => 
       </div>
 
       <div
-        className="grid"
+        className="grid two-col"
         style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', marginTop: 16 }}
       >
         <div className="card">

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Finding, SiteSummary } from '../lib/api';
-import { SiteMap } from '../components/SiteMap';
+import { GameMap } from '../components/GameMap';
 import { FindingCard } from '../components/FindingCard';
 import { num, statusColor, statusLabel, urbanClassLabel } from '../lib/format';
 
@@ -103,12 +103,10 @@ export function Overview({ sites, findings, onSelectSite }: Props) {
       </section>
 
       <div
-        className="grid"
+        className="grid two-col"
         style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(300px, 1fr)', marginTop: 16 }}
       >
-        <div className="card" style={{ overflow: 'hidden' }}>
-          <SiteMap sites={sites} selectedId={hoveredSite} onSelect={onSelectSite} />
-        </div>
+        <GameMap sites={sites} selectedId={hoveredSite} onSelect={onSelectSite} compact />
 
         <div className="card" style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <div className="card-head">
@@ -160,7 +158,9 @@ export function Overview({ sites, findings, onSelectSite }: Props) {
 
       <section style={{ marginTop: 26 }}>
         <div style={{ marginBottom: 12 }}>
-          <h2 style={{ fontSize: 16 }}>Priority findings</h2>
+          <h2 className="section-title" style={{ marginTop: 8 }}>
+            Priority findings
+          </h2>
           <p className="card-sub" style={{ maxWidth: 780 }}>
             Ranked by severity, then by how confident the rule is. A severe finding the engine is
             unsure of still outranks a certain trivial one — the cost of missing the first is higher

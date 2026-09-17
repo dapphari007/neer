@@ -445,6 +445,22 @@ export function simulateObservations(options: SimulateOptions): ObservationRow[]
           return Number(Math.max(0, observed).toFixed(decimals));
         };
 
+        /**
+         * pH needs additive error, not multiplicative.
+         *
+         * pH is already a logarithm, and a colour-strip kit is good to roughly
+         * half a unit wherever on the scale the reading falls. Applying the
+         * proportional error used for concentrations made a novice's reading of
+         * a neutral stream wander down to 5.8 — a biologically significant
+         * acidification that existed only in the noise model, and one that then
+         * failed the pH guideline and dragged down a pristine headwater's score.
+         */
+        const measurePh = (value: number): number | null => {
+          if (!rng.bool(profile.coverage)) return null;
+          const observed = value + rng.normal(0, profile.noiseCv * 2.5);
+          return Number(Math.min(14, Math.max(0, observed)).toFixed(1));
+        };
+
         const hour = rng.int(9, 17);
         const minute = rng.int(0, 59);
 
@@ -472,7 +488,7 @@ export function simulateObservations(options: SimulateOptions): ObservationRow[]
           photo_count: rng.int(0, 3),
 
           water_temp_c: measure(truth.waterTempC, 1),
-          ph: measure(truth.ph, 1),
+          ph: measurePh(truth.ph),
           dissolved_oxygen_mgl: measure(truth.dissolvedOxygenMgl, 2),
           conductivity_uscm: measure(truth.conductivityUscm, 0),
           turbidity_ntu: measure(truth.turbidityNtu, 1),

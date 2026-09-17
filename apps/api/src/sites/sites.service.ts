@@ -196,6 +196,34 @@ export class SitesService {
       ORDER BY meanSohi ASC`);
   }
 
+  /**
+   * Recent measurements in real units, per site.
+   *
+   * The index is deliberately abstract; these are what make it explainable to a
+   * non-specialist. "Turbidity 46 NTU" means nothing to a ten-year-old, but the
+   * dashboard can turn it into "about as cloudy as tea with milk" — and it can
+   * only do that honestly from the measured value, not from the composite score.
+   */
+  async getRecentMeasurements() {
+    return this.clickhouse.query(`
+      SELECT
+          site_id                                AS siteId,
+          toUInt32(countMerge(obs_count))        AS nObs,
+          round(avgMerge(temp_avg), 1)           AS waterTempC,
+          round(avgMerge(do_avg), 1)             AS dissolvedOxygenMgl,
+          round(avgMerge(turbidity_avg), 0)      AS turbidityNtu,
+          round(avgMerge(nitrate_avg), 1)        AS nitrateMgl,
+          round(avgMerge(phosphate_avg), 2)      AS phosphateMgl,
+          round(avgMerge(ph_avg), 1)             AS ph,
+          round(avgMerge(litter_avg), 1)         AS litterScore,
+          round(avgMerge(foam_rate), 2)          AS foamRate,
+          round(avgMerge(sewage_odour_rate), 2)  AS sewageOdourRate
+      FROM site_daily_metrics
+      WHERE day > (SELECT max(day) FROM site_daily_metrics) - 14
+      GROUP BY site_id
+      ORDER BY site_id`);
+  }
+
   /** Most recent date for which any index value exists, for the `asOf` field. */
   async getAsOf(): Promise<string | null> {
     const [row] = await this.clickhouse.query<{ asOf: string }>(

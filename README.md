@@ -1,10 +1,10 @@
-# नीर Neer
+# Neer
 
 **Turning citizen stream observations into One Health intelligence.**
 
 IEEE OneAquaHealth Global Hackathon 2026 · **Track 2 — Data-to-Insight**
 
-_Neer_ (नीर) is Sanskrit for water.
+_Neer_ is the Sanskrit word for water.
 
 ---
 
@@ -39,6 +39,36 @@ nobody currently gets:
 | **A defensible composite index**          | The Stream One Health Index (SOHI), 0–100, built from published methods — CCME WQI, ASPT against WHPT EQR boundaries, QBR — with every threshold tagged by where it came from.                                                           |
 | **Honest uncertainty**                    | Every score carries a credible interval driven by data completeness, density, recency, observer reliability and inter-observer agreement. Reported component by component, so uncertainty reads as a task list rather than a disclaimer. |
 | **Audience-specific One Health insights** | Deterministic rules turn measurements into evidence-bearing findings, each rendered for a citizen, a municipality, and a public health officer — because the same fact demands different responses from each.                            |
+
+---
+
+## Two ways in, one dataset
+
+|                  | For                                            | What it shows                                                                                                                                                                                                                                                    |
+| ---------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🐟 **Explorer**  | Children, families, classrooms                 | Drip the droplet, whose face shows how each stream feels · stars and a score · real-life comparisons (“about as cloudy as tea with milk”) · a game-style map to mark litter, foam, fish and birds, with XP, levels and quests · one-click shareable stream cards |
+| 🔬 **Scientist** | Catchment officers, researchers, public health | Credible intervals · score decomposition · trend with rainfall · evidence-bearing findings with citations and audience-specific actions                                                                                                                          |
+
+Switching modes keeps you on the same stream, because it is the same stream — told differently,
+never scored differently. Three rules keep the Explorer side honest rather than merely cute:
+
+- **Comparisons come from the measured value, never the composite score**, and the real number is
+  printed under every analogy. If a parameter was not measured, the card says so instead of guessing.
+- **Safety advice is never simplified.** Findings are retold in plain language, but “what you can
+  do” is the rule engine's own citizen action, unedited.
+- **The demo-data label is drawn into every share card's pixels.** The cards name real rivers and
+  the observations here are simulated; a caption can be deleted when an image is reposted, so the
+  caveat has to live in the image. Nothing is ever posted _for_ anyone — the app holds no social
+  accounts or tokens, and the person always lands in their own app with the final say.
+
+Map marks are personal field notes stored on the device only. They never feed the index, and
+collecting children's map marks on a server is not something to do without consent flows a
+prototype does not have.
+
+Status uses the **Water Framework Directive's statutory colour code** (blue / green / yellow /
+orange / red), tuned until it cleared colour-blind separation, a normal-vision difference floor and
+contrast on the chart surface. Yellow alone sits outside the lightness band — inherent to yellow —
+so status is never colour-only: every marker also carries its number, a face and a label.
 
 ---
 

@@ -95,6 +95,35 @@ export function Method() {
         system rather than left to documentation discipline.
       </p>
 
+      <section style={{ marginTop: 22 }}>
+        <div className="card" style={{ padding: 20, borderColor: 'var(--glow)' }}>
+          <h2 style={{ fontSize: 20 }}>The short version, for explorers</h2>
+          <ul style={{ fontSize: 15, lineHeight: 1.7, margin: '10px 0 0', paddingLeft: 22 }}>
+            <li>
+              Every stream gets a <strong>health score out of 100</strong>, a colour, and a face —
+              like a check-up at the doctor.
+            </li>
+            <li>
+              The score looks at three things: <strong>the water and its creatures</strong>,{' '}
+              <strong>the mess people leave</strong>, and <strong>whether it is safe</strong> for
+              people and pets.
+            </li>
+            <li>
+              If just one of those is really bad, the whole score drops. A stream with lovely bugs
+              but sewage in it is <em>not</em> a healthy stream.
+            </li>
+            <li>
+              The comparisons — “as cloudy as tea with milk” — always come from a real measurement,
+              and the real number is shown underneath. If nobody measured it, we say so. We never
+              guess.
+            </li>
+            <li>
+              In this demo the check-ups are pretend ones made by a computer. The weather is real.
+            </li>
+          </ul>
+        </div>
+      </section>
+
       <section style={{ marginTop: 26 }}>
         <h2 style={{ fontSize: 17, marginBottom: 12 }}>The three sub-indices</h2>
         {SUB_INDICES.map((sub) => (

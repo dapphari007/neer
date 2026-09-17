@@ -81,6 +81,21 @@ export interface Finding {
   validUntil: string;
 }
 
+/** Trailing 14-day mean measurements, in real units. Null where not measured. */
+export interface Measurements {
+  siteId: string;
+  nObs: number;
+  waterTempC: number | null;
+  dissolvedOxygenMgl: number | null;
+  turbidityNtu: number | null;
+  nitrateMgl: number | null;
+  phosphateMgl: number | null;
+  ph: number | null;
+  litterScore: number | null;
+  foamRate: number | null;
+  sewageOdourRate: number | null;
+}
+
 export interface DataDisclosure {
   observations: string;
   environmental: string;
@@ -92,6 +107,7 @@ export interface DataAdapter {
   getSites(): Promise<SiteSummary[]>;
   getTrend(siteId: string): Promise<TrendPoint[]>;
   getFindings(siteId?: string): Promise<Finding[]>;
+  getMeasurements(): Promise<Measurements[]>;
   getDisclosure(): Promise<DataDisclosure>;
 }
 
@@ -137,6 +153,10 @@ class HttpAdapter implements DataAdapter {
       ? `?siteId=${encodeURIComponent(siteId)}&minSeverity=info&limit=200`
       : '?minSeverity=info&limit=200';
     return (await this.get<Finding[]>(`/api/findings${query}`)).data;
+  }
+
+  async getMeasurements(): Promise<Measurements[]> {
+    return (await this.get<Measurements[]>('/api/measurements')).data;
   }
 
   async getDisclosure(): Promise<DataDisclosure> {
@@ -189,6 +209,10 @@ class StaticAdapter implements DataAdapter {
   async getFindings(siteId?: string): Promise<Finding[]> {
     const all = await this.load<Finding[]>('findings.json');
     return siteId ? all.filter((finding) => finding.siteId === siteId) : all;
+  }
+
+  async getMeasurements(): Promise<Measurements[]> {
+    return this.load<Measurements[]>('measurements.json');
   }
 
   async getDisclosure(): Promise<DataDisclosure> {

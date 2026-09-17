@@ -45,6 +45,16 @@ export class SitesController {
     return envelope({ siteId, points, anomalies: [], forecast: [] });
   }
 
+  @Get('measurements')
+  @ApiOperation({ summary: 'Trailing 14-day mean measurements per site, in real units' })
+  async measurements() {
+    const [data, asOf] = await Promise.all([
+      this.sites.getRecentMeasurements(),
+      this.sites.getAsOf(),
+    ]);
+    return envelope(data, asOf);
+  }
+
   @Get('catchments/summary')
   @ApiOperation({ summary: 'Catchment rollup, reporting the worst site alongside the mean' })
   async catchments() {
