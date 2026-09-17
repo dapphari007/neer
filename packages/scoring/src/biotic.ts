@@ -63,7 +63,9 @@ export const TAXON_BMWP_SCORES: Record<TaxonGroup, TaxonScore> = {
   },
   cased_caddisfly: {
     score: 7,
-    provenance: derived('Spans Phryganeidae (10) to Hydroptilidae (6); 7 taken as a conservative mid-range value.'),
+    provenance: derived(
+      'Spans Phryganeidae (10) to Hydroptilidae (6); 7 taken as a conservative mid-range value.',
+    ),
   },
   caseless_caddisfly: {
     score: 6,
@@ -71,16 +73,24 @@ export const TAXON_BMWP_SCORES: Record<TaxonGroup, TaxonScore> = {
   },
   freshwater_shrimp: { score: 6, provenance: standard('Gammaridae, BMWP 6.') },
   damselfly_nymph: { score: 6, provenance: standard('Coenagrionidae, BMWP 6.') },
-  water_beetle: { score: 5, provenance: standard('Dytiscidae and related beetle families, BMWP 5.') },
+  water_beetle: {
+    score: 5,
+    provenance: standard('Dytiscidae and related beetle families, BMWP 5.'),
+  },
   olives_baetidae: { score: 4, provenance: standard('Baetidae, BMWP 4.') },
   snail: {
     score: 3,
-    provenance: derived('Spans Neritidae/Ancylidae (6) to Lymnaeidae/Physidae (3); the tolerant value is taken because Lymnaeidae and Physidae dominate urban reaches.'),
+    provenance: derived(
+      'Spans Neritidae/Ancylidae (6) to Lymnaeidae/Physidae (3); the tolerant value is taken because Lymnaeidae and Physidae dominate urban reaches.',
+    ),
   },
   hoglouse_asellus: { score: 3, provenance: standard('Asellidae, BMWP 3.') },
   leech: { score: 3, provenance: standard('Erpobdellidae and Glossiphoniidae, BMWP 3.') },
   bloodworm_chironomid: { score: 2, provenance: standard('Chironomidae, BMWP 2.') },
-  worm_oligochaeta: { score: 1, provenance: standard('Oligochaeta, BMWP 1 (scored at order level).') },
+  worm_oligochaeta: {
+    score: 1,
+    provenance: standard('Oligochaeta, BMWP 1 (scored at order level).'),
+  },
 };
 
 /**

@@ -56,7 +56,8 @@ export interface QbrInputs {
   readonly garbagePresent: boolean;
 
   // ─── Block 4: channel alteration ───────────────────────────────────────────
-  readonly channelAlteration: 'unmodified' | 'terraces_modified' | 'discontinuous_structures' | 'channelized';
+  readonly channelAlteration:
+    'unmodified' | 'terraces_modified' | 'discontinuous_structures' | 'channelized';
   readonly rigidStructuresInBed: boolean;
   readonly transverseStructures: boolean;
 }
@@ -86,7 +87,8 @@ function block1(i: QbrInputs): QbrBlockResult {
   const base = i.coverPct > 80 ? 25 : i.coverPct >= 50 ? 10 : i.coverPct >= 10 ? 5 : 0;
   const modifiers: Array<{ reason: string; delta: number }> = [];
 
-  if (i.connectivityPct >= 100) modifiers.push({ reason: 'Total connectivity to woodland', delta: 10 });
+  if (i.connectivityPct >= 100)
+    modifiers.push({ reason: 'Total connectivity to woodland', delta: 10 });
   else if (i.connectivityPct > 50) modifiers.push({ reason: 'Connectivity above 50%', delta: 5 });
   else if (i.connectivityPct >= 25) modifiers.push({ reason: 'Connectivity 25–50%', delta: -5 });
   else modifiers.push({ reason: 'Connectivity below 25%', delta: -10 });
@@ -188,8 +190,10 @@ function block4(i: QbrInputs): QbrBlockResult {
           : 0;
 
   const modifiers: Array<{ reason: string; delta: number }> = [];
-  if (i.rigidStructuresInBed) modifiers.push({ reason: 'Rigid structures in the river bed', delta: -10 });
-  if (i.transverseStructures) modifiers.push({ reason: 'Transverse structures (weirs)', delta: -10 });
+  if (i.rigidStructuresInBed)
+    modifiers.push({ reason: 'Rigid structures in the river bed', delta: -10 });
+  if (i.transverseStructures)
+    modifiers.push({ reason: 'Transverse structures (weirs)', delta: -10 });
 
   return {
     block: 4,
@@ -219,7 +223,10 @@ export function classifyQbr(total: number): QbrClass {
 export function computeQbr(inputs: QbrInputs): QbrResult {
   const blocks = [block1(inputs), block2(inputs), block3(inputs), block4(inputs)];
   const total = blocks.reduce((s, b) => s + b.score, 0);
-  const limitingBlock = blocks.reduce((worst, b) => (b.score < worst.score ? b : worst), blocks[0]!);
+  const limitingBlock = blocks.reduce(
+    (worst, b) => (b.score < worst.score ? b : worst),
+    blocks[0]!,
+  );
 
   return { total, qbrClass: classifyQbr(total), blocks, limitingBlock };
 }

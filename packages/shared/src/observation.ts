@@ -1,11 +1,5 @@
 import { z } from 'zod';
-import {
-  FlowState,
-  MeasurementMethod,
-  ObserverExperience,
-  Odour,
-  WaterColour,
-} from './enums';
+import { FlowState, MeasurementMethod, ObserverExperience, Odour, WaterColour } from './enums';
 
 /**
  * Macroinvertebrate groups a trained volunteer can realistically identify in the

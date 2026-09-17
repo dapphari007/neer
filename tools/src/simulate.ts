@@ -124,8 +124,13 @@ const OBSERVER_PROFILES: Record<Experience, ObserverProfile> = {
 
 /** Volunteer mix: mostly novices, as every real programme reports. */
 const EXPERIENCE_MIX: readonly Experience[] = [
-  'novice', 'novice', 'novice', 'novice',
-  'trained', 'trained', 'trained',
+  'novice',
+  'novice',
+  'novice',
+  'novice',
+  'trained',
+  'trained',
+  'trained',
   'expert',
 ];
 
@@ -249,7 +254,9 @@ function trueCondition(site: SeedSite, ctx: DayContext, rng: Rng) {
   // dry — the first flush after a drought carries far more load than the same
   // rainfall on saturated ground.
   const stormMagnitude =
-    clamp(ctx.precip48hMm / 30, 0, 1.6) * l.stormSensitivity * (0.55 + 0.45 * clamp(ctx.dryDaysBefore / 10, 0, 1));
+    clamp(ctx.precip48hMm / 30, 0, 1.6) *
+    l.stormSensitivity *
+    (0.55 + 0.45 * clamp(ctx.dryDaysBefore / 10, 0, 1));
 
   // Oxygen: start at the physical ceiling, then subtract.
   const saturation = oxygenSaturationMgl(waterTempC);
@@ -279,7 +286,10 @@ function trueCondition(site: SeedSite, ctx: DayContext, rng: Rng) {
   );
 
   const nutrientBoost =
-    1 + 1.6 * stormMagnitude + (eventKind === 'sewage_spill' ? 2.4 * event : 0) + (eventKind === 'gradual_decline' ? 1.1 * event : 0);
+    1 +
+    1.6 * stormMagnitude +
+    (eventKind === 'sewage_spill' ? 2.4 * event : 0) +
+    (eventKind === 'gradual_decline' ? 1.1 * event : 0);
 
   const nitrateMgl = clamp(l.baseNitrateMgl * nutrientBoost + rng.normal(0, 1.2), 0.1, 180);
   const phosphateMgl = clamp(l.basePhosphateMgl * nutrientBoost + rng.normal(0, 0.03), 0.005, 40);
@@ -352,10 +362,7 @@ function trueCondition(site: SeedSite, ctx: DayContext, rng: Rng) {
  * is the actual ecological pattern BMWP was built to capture, rather than a
  * uniform random draw that would produce nonsense assemblages.
  */
-function sampleTaxa(
-  trueAspt: number,
-  rng: Rng,
-): { groups: string[]; abundance: number[] } {
+function sampleTaxa(trueAspt: number, rng: Rng): { groups: string[]; abundance: number[] } {
   const groups: string[] = [];
   const abundance: number[] = [];
 
@@ -450,7 +457,9 @@ export function simulateObservations(options: SimulateOptions): ObservationRow[]
           : { groups: [], abundance: [] };
 
         const sewageSuspected =
-          truth.eventKind === 'sewage_spill' && truth.event > 0.25 ? rng.bool(0.75) : rng.bool(pressure * 0.25);
+          truth.eventKind === 'sewage_spill' && truth.event > 0.25
+            ? rng.bool(0.75)
+            : rng.bool(pressure * 0.25);
 
         rows.push({
           observation_id: randomUUID(),

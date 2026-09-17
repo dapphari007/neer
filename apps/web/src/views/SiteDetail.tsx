@@ -40,12 +40,24 @@ export function SiteDetail({ site, onBack }: { site: SiteSummary; onBack: () => 
   }, [site.siteId]);
 
   const subIndices = [
-    { label: 'Ecological integrity', value: site.ecologicalScore, color: 'var(--series-ecological)',
-      note: 'Physico-chemical quality and the invertebrate community' },
-    { label: 'Anthropogenic pressure', value: site.pressureScore, color: 'var(--series-pressure)',
-      note: 'Litter, foam, discharges, riparian condition — inverted, so high is good' },
-    { label: 'Health exposure', value: site.exposureScore, color: 'var(--series-exposure)',
-      note: 'Pathogen, bloom, vector and AMR risk proxies — inverted, so high is good' },
+    {
+      label: 'Ecological integrity',
+      value: site.ecologicalScore,
+      color: 'var(--series-ecological)',
+      note: 'Physico-chemical quality and the invertebrate community',
+    },
+    {
+      label: 'Anthropogenic pressure',
+      value: site.pressureScore,
+      color: 'var(--series-pressure)',
+      note: 'Litter, foam, discharges, riparian condition — inverted, so high is good',
+    },
+    {
+      label: 'Health exposure',
+      value: site.exposureScore,
+      color: 'var(--series-exposure)',
+      note: 'Pathogen, bloom, vector and AMR risk proxies — inverted, so high is good',
+    },
   ];
 
   return (
@@ -64,7 +76,8 @@ export function SiteDetail({ site, onBack }: { site: SiteSummary; onBack: () => 
         </div>
         <p className="secondary" style={{ margin: '5px 0 0', fontSize: 13 }}>
           {site.catchment} catchment · {urbanClassLabel(site.urbanClass)} · {site.city}
-          {Boolean(Number(site.recreationalAccess)) && ' · public contact with the water occurs here'}
+          {Boolean(Number(site.recreationalAccess)) &&
+            ' · public contact with the water occurs here'}
         </p>
       </header>
 
@@ -186,7 +199,11 @@ export function SiteDetail({ site, onBack }: { site: SiteSummary; onBack: () => 
           </div>
           <div style={{ padding: '12px 16px 16px' }}>
             {[
-              { label: 'Overall', value: site.confidence ?? 0, note: 'Weighted geometric mean of the components below' },
+              {
+                label: 'Overall',
+                value: site.confidence ?? 0,
+                note: 'Weighted geometric mean of the components below',
+              },
             ].map((row) => (
               <div className="conf-row" key={row.label} style={{ fontWeight: 600 }}>
                 <span>{row.label}</span>
@@ -221,8 +238,8 @@ export function SiteDetail({ site, onBack }: { site: SiteSummary; onBack: () => 
         {findings.length === 0 && (
           <div className="card" style={{ padding: 24 }}>
             <p className="secondary" style={{ margin: 0 }}>
-              No active findings at this site. Absence of findings reflects absence of detection —
-              a site with no recent observations cannot produce any.
+              No active findings at this site. Absence of findings reflects absence of detection — a
+              site with no recent observations cannot produce any.
             </p>
           </div>
         )}

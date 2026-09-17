@@ -172,9 +172,10 @@ export function computeSohi(inputs: SohiInputs): SohiResult {
   const band = confidenceBand(sohi, confidence.overall);
   const gains = headroom(scores, sohi);
 
-  const limitingSubIndex = (
-    Object.keys(gains) as Array<keyof typeof gains>
-  ).reduce((worst, key) => (gains[key] > gains[worst] ? key : worst), 'ecological' as keyof typeof gains);
+  const limitingSubIndex = (Object.keys(gains) as Array<keyof typeof gains>).reduce(
+    (worst, key) => (gains[key] > gains[worst] ? key : worst),
+    'ecological' as keyof typeof gains,
+  );
 
   // ─── Drivers ───────────────────────────────────────────────────────────────
   // Sub-index headroom first, then the specific measurements underneath, so the

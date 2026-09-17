@@ -91,8 +91,7 @@ export function computeConfidence(i: ConfidenceInputs): ConfidenceBreakdown {
   // Biology is weighted separately from the count because it is not one
   // parameter among many: under the WFD it is the primary element, and its
   // absence bounds what the score can claim at all.
-  const rawCompleteness =
-    i.parametersExpected > 0 ? i.parametersPresent / i.parametersExpected : 0;
+  const rawCompleteness = i.parametersExpected > 0 ? i.parametersPresent / i.parametersExpected : 0;
   const completeness = clamp01(rawCompleteness * (i.hasBiology ? 1 : 0.75));
 
   // ─── Density ───────────────────────────────────────────────────────────────
@@ -158,10 +157,7 @@ export const BAND_PROVENANCE = modelled(
  * Clamped to 0–100 at both ends, so a low score near the floor produces an
  * asymmetric band rather than a nonsensical negative bound.
  */
-export function confidenceBand(
-  score: number,
-  confidence: number,
-): { low: number; high: number } {
+export function confidenceBand(score: number, confidence: number): { low: number; high: number } {
   const halfWidth = (1 - clamp01(confidence)) * MAX_BAND_HALF_WIDTH;
   return {
     low: Math.max(0, score - halfWidth),

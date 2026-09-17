@@ -1,4 +1,10 @@
-import { computeCcmeWqi, DEFAULT_OBJECTIVES, type CcmeResult, type Measurement, type Objective } from './ccme';
+import {
+  computeCcmeWqi,
+  DEFAULT_OBJECTIVES,
+  type CcmeResult,
+  type Measurement,
+  type Objective,
+} from './ccme';
 import { computeBiotic, type BioticResult } from './biotic';
 import { SOURCES, type Provenance } from './provenance';
 import type { TaxonGroup } from '@neer/shared';
@@ -92,9 +98,7 @@ export function computeEcological(i: EcologicalInputs): EcologicalResult {
       // Chemistry below CCME "Good" prevents High status.
       score = 80;
       limitingElement = 'physico_chemical';
-      notes.push(
-        `Physico-chemical quality prevents High status; biology alone would support it.`,
-      );
+      notes.push(`Physico-chemical quality prevents High status; biology alone would support it.`);
     }
   } else if (hasBiology) {
     score = biotic.score!;

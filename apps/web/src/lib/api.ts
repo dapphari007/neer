@@ -103,7 +103,9 @@ class HttpAdapter implements DataAdapter {
 
   constructor(private readonly baseUrl: string) {}
 
-  private async get<T>(path: string): Promise<{ data: T; meta?: { dataDisclosure: DataDisclosure } }> {
+  private async get<T>(
+    path: string,
+  ): Promise<{ data: T; meta?: { dataDisclosure: DataDisclosure } }> {
     const response = await fetch(`${this.baseUrl}${path}`);
     if (!response.ok) {
       const body = (await response.json().catch(() => null)) as { message?: string } | null;
@@ -131,7 +133,9 @@ class HttpAdapter implements DataAdapter {
   }
 
   async getFindings(siteId?: string): Promise<Finding[]> {
-    const query = siteId ? `?siteId=${encodeURIComponent(siteId)}&minSeverity=info&limit=200` : '?minSeverity=info&limit=200';
+    const query = siteId
+      ? `?siteId=${encodeURIComponent(siteId)}&minSeverity=info&limit=200`
+      : '?minSeverity=info&limit=200';
     return (await this.get<Finding[]>(`/api/findings${query}`)).data;
   }
 

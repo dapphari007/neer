@@ -170,7 +170,9 @@ describe('computeQbr', () => {
    * the four-block structure exists to prevent.
    */
   it('clamps each block to 0..25 so one block cannot subsidise another', () => {
-    const r = computeQbr(pristineQbr({ channelAlteration: 'channelized', rigidStructuresInBed: true }));
+    const r = computeQbr(
+      pristineQbr({ channelAlteration: 'channelized', rigidStructuresInBed: true }),
+    );
     for (const block of r.blocks) {
       expect(block.score).toBeGreaterThanOrEqual(0);
       expect(block.score).toBeLessThanOrEqual(25);
@@ -356,7 +358,10 @@ describe('computeConfidence', () => {
   });
 
   it('reduces completeness when biology is missing', () => {
-    const withBio = computeConfidence({ ...full, observerExperience: [...full.observerExperience] });
+    const withBio = computeConfidence({
+      ...full,
+      observerExperience: [...full.observerExperience],
+    });
     const without = computeConfidence({
       ...full,
       observerExperience: [...full.observerExperience],

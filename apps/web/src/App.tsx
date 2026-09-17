@@ -28,13 +28,11 @@ export function App() {
         setFindings(loadedFindings);
         setDisclosure(loadedDisclosure);
       })
-      .catch((cause: unknown) =>
-        setError(cause instanceof Error ? cause.message : String(cause)),
-      );
+      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)));
   }, []);
 
   const selectedSite = useMemo(
-    () => (route.view === 'site' ? sites?.find((s) => s.siteId === route.siteId) ?? null : null),
+    () => (route.view === 'site' ? (sites?.find((s) => s.siteId === route.siteId) ?? null) : null),
     [route, sites],
   );
 
@@ -81,10 +79,10 @@ export function App() {
           <div className="provenance" role="note">
             <span aria-hidden="true">⚠</span>
             <span>
-              <strong>Data provenance.</strong> Weather and hydrology are{' '}
-              <strong>real</strong> measurements from Open-Meteo. Citizen observations are{' '}
-              <strong>simulated</strong> by a documented physical model — no real person recorded
-              them, and nothing here describes the measured condition of any real stream.{' '}
+              <strong>Data provenance.</strong> Weather and hydrology are <strong>real</strong>{' '}
+              measurements from Open-Meteo. Citizen observations are <strong>simulated</strong> by a
+              documented physical model — no real person recorded them, and nothing here describes
+              the measured condition of any real stream.{' '}
               <button
                 type="button"
                 className="back-link"

@@ -176,9 +176,7 @@ export function computePressure(i: PressureInputs): PressureResult {
 
   const totalWeight = components.reduce((s, c) => s + c.weight, 0);
   const score =
-    totalWeight > 0
-      ? components.reduce((s, c) => s + c.score * c.weight, 0) / totalWeight
-      : 50;
+    totalWeight > 0 ? components.reduce((s, c) => s + c.score * c.weight, 0) / totalWeight : 50;
 
   const limitingComponent = components.reduce<PressureComponent | null>(
     (worst, c) => (worst === null || c.score < worst.score ? c : worst),

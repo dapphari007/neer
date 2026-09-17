@@ -77,7 +77,9 @@ export class BigQueryForecastProvider extends ForecastProvider {
     // Dynamic specifier so the bundler does not try to resolve an optional
     // dependency that is usually absent.
     const moduleName = '@google-cloud/bigquery';
-    const mod = (await import(moduleName)) as { BigQuery: { new (options: unknown): BigQueryLike } };
+    const mod = (await import(moduleName)) as {
+      BigQuery: { new (options: unknown): BigQueryLike };
+    };
     return mod.BigQuery;
   }
 

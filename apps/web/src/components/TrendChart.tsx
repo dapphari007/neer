@@ -129,9 +129,7 @@ export function TrendChart({ points, showSubIndices }: Props) {
   }, [points]);
 
   if (!geometry) {
-    return (
-      <div className="loading">Not enough scored days at this site to draw a trend.</div>
-    );
+    return <div className="loading">Not enough scored days at this site to draw a trend.</div>;
   }
 
   const { valid, smoothed, x, y, line, ribbon, maxRain } = geometry;
@@ -313,7 +311,7 @@ export function TrendChart({ points, showSubIndices }: Props) {
           style={{
             left: `${Math.min(88, Math.max(2, (x(hovered.day) / WIDTH) * 100))}%`,
             top: 18,
-            transform: (x(hovered.day) / WIDTH) > 0.6 ? 'translateX(-104%)' : 'translateX(8px)',
+            transform: x(hovered.day) / WIDTH > 0.6 ? 'translateX(-104%)' : 'translateX(8px)',
           }}
         >
           <div className="tooltip-date">{shortDate(hovered.day)}</div>
@@ -398,7 +396,10 @@ export function TrendLegend({ showSubIndices }: { showSubIndices: boolean }) {
 
 /** The table fallback every chart ships with. */
 export function TrendTable({ points }: { points: TrendPoint[] }) {
-  const rows = points.filter((p) => p.sohi !== null).slice(-30).reverse();
+  const rows = points
+    .filter((p) => p.sohi !== null)
+    .slice(-30)
+    .reverse();
   return (
     <details className="table-toggle">
       <summary>View the last 30 scored days as a table</summary>
@@ -421,7 +422,9 @@ export function TrendTable({ points }: { points: TrendPoint[] }) {
               <td className="num">
                 {num(p.sohiLow)}–{num(p.sohiHigh)}
               </td>
-              <td className="num">{p.confidence === null ? '—' : `${Math.round(p.confidence * 100)}%`}</td>
+              <td className="num">
+                {p.confidence === null ? '—' : `${Math.round(p.confidence * 100)}%`}
+              </td>
               <td className="num">{p.nObs}</td>
               <td className="num">{num(p.precipMm)}</td>
             </tr>

@@ -1,12 +1,6 @@
 import { useState } from 'react';
 import type { Finding } from '../lib/api';
-import {
-  domainLabel,
-  severityColor,
-  severityGlyph,
-  severityLabel,
-  shortDate,
-} from '../lib/format';
+import { domainLabel, severityColor, severityGlyph, severityLabel, shortDate } from '../lib/format';
 
 /**
  * A One Health finding.

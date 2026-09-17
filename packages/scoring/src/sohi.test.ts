@@ -134,8 +134,12 @@ describe('aggregateSohi', () => {
   });
 
   it('clamps to 0..100 for out-of-range input', () => {
-    expect(aggregateSohi({ ecological: 150, pressure: 150, exposure: 150 })).toBeLessThanOrEqual(100);
-    expect(aggregateSohi({ ecological: -50, pressure: -50, exposure: -50 })).toBeGreaterThanOrEqual(0);
+    expect(aggregateSohi({ ecological: 150, pressure: 150, exposure: 150 })).toBeLessThanOrEqual(
+      100,
+    );
+    expect(aggregateSohi({ ecological: -50, pressure: -50, exposure: -50 })).toBeGreaterThanOrEqual(
+      0,
+    );
   });
 });
 

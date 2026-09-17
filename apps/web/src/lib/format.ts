@@ -31,7 +31,8 @@ export const severityGlyph = (severity: string): string =>
   ({ info: 'i', watch: '!', elevated: '!!', high: '!!!' })[severity] ?? 'i';
 
 export const severityLabel = (severity: string): string =>
-  ({ info: 'Information', watch: 'Watch', elevated: 'Elevated', high: 'High' })[severity] ?? severity;
+  ({ info: 'Information', watch: 'Watch', elevated: 'Elevated', high: 'High' })[severity] ??
+  severity;
 
 export const domainLabel = (domain: string): string =>
   ({

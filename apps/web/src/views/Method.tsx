@@ -17,7 +17,8 @@ const SUB_INDICES = [
     name: 'Ecological integrity',
     color: 'var(--series-ecological)',
     weight: '45%',
-    built: 'CCME Water Quality Index 1.0 over the physico-chemical parameters, plus ASPT from citizen-identifiable invertebrate groups, expressed as an Ecological Quality Ratio.',
+    built:
+      'CCME Water Quality Index 1.0 over the physico-chemical parameters, plus ASPT from citizen-identifiable invertebrate groups, expressed as an Ecological Quality Ratio.',
     why: 'Weighted highest because an invertebrate community integrates months of conditions. It records what a stream has been through, not what the weather was doing on the morning somebody sampled it.',
   },
   {
@@ -25,7 +26,8 @@ const SUB_INDICES = [
     name: 'Anthropogenic pressure',
     color: 'var(--series-pressure)',
     weight: '25%',
-    built: 'QBR riparian quality index, litter, foam and surface films, visible discharges, catchment sealing, outfall count, invasive riparian plants.',
+    built:
+      'QBR riparian quality index, litter, foam and surface films, visible discharges, catchment sealing, outfall count, invasive riparian plants.',
     why: 'This is where volunteer data beats professional monitoring rather than approximating it. A quarterly official survey cannot see a Tuesday foam event; a resident walking a dog can.',
   },
   {
@@ -33,7 +35,8 @@ const SUB_INDICES = [
     name: 'Health exposure',
     color: 'var(--series-exposure)',
     weight: '30%',
-    built: 'Field-observable risk proxies for faecal contamination, cyanobacterial blooms, mosquito vector habitat and antimicrobial resistance pressure, scaled by how much human and animal contact actually occurs.',
+    built:
+      'Field-observable risk proxies for faecal contamination, cyanobacterial blooms, mosquito vector habitat and antimicrobial resistance pressure, scaled by how much human and animal contact actually occurs.',
     why: 'Outweighs pressure because this is a One Health index. Where the two diverge, the realised risk to people and animals matters more than the pressure that produced it.',
   },
 ];
@@ -198,9 +201,18 @@ export function Method() {
             weighted average:
           </p>
           <ul style={{ fontSize: 13.5, lineHeight: 1.62, marginTop: 10, paddingLeft: 20 }}>
-            <li>Biology alone can drive a site below Good. Clean chemistry cannot rescue a collapsed invertebrate community.</li>
-            <li>Chemistry acts as a ceiling — it can prevent High status and cap at Moderate, but cannot on its own assert Poor or Bad.</li>
-            <li>No site reaches High status without a biological survey. A site with no survey is bounded, and told that a survey is its highest-value next observation.</li>
+            <li>
+              Biology alone can drive a site below Good. Clean chemistry cannot rescue a collapsed
+              invertebrate community.
+            </li>
+            <li>
+              Chemistry acts as a ceiling — it can prevent High status and cap at Moderate, but
+              cannot on its own assert Poor or Bad.
+            </li>
+            <li>
+              No site reaches High status without a biological survey. A site with no survey is
+              bounded, and told that a survey is its highest-value next observation.
+            </li>
           </ul>
           <p style={{ margin: '10px 0 0', fontSize: 13.5, lineHeight: 1.62 }}>
             A naive weighted average reports the opposite in both directions.

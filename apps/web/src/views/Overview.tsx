@@ -86,16 +86,12 @@ export function Overview({ sites, findings, onSelectSite }: Props) {
         <div className="tile">
           <div className="tile-label">Active findings</div>
           <div className="tile-value tnum">{findings.length}</div>
-          <div className="tile-note">
-            {stats.highSeverity.length} at elevated severity or above
-          </div>
+          <div className="tile-note">{stats.highSeverity.length} at elevated severity or above</div>
         </div>
         <div className="tile">
           <div className="tile-label">Public contact at risk</div>
           <div className="tile-value tnum">{stats.withContact}</div>
-          <div className="tile-note">
-            Sites below Good where people and animals enter the water
-          </div>
+          <div className="tile-note">Sites below Good where people and animals enter the water</div>
         </div>
         <div className="tile">
           <div className="tile-label">Mean confidence</div>

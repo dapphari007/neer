@@ -147,10 +147,7 @@ export function evaluateRules(
 // ─── Helpers shared by rules ──────────────────────────────────────────────────
 
 /** Read a metric, treating absent and non-finite alike. */
-export const metric = (
-  source: Record<string, number | null>,
-  key: string,
-): number | null => {
+export const metric = (source: Record<string, number | null>, key: string): number | null => {
   const value = source[key];
   return value === null || value === undefined || !Number.isFinite(value) ? null : value;
 };

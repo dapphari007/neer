@@ -1,0 +1,37 @@
+# Never copy host dependencies into an image.
+#
+# pnpm's node_modules is a tree of symlinks into a content-addressed store that
+# exists only on the host. Copying it in overwrites the container's own install
+# with links pointing at paths that do not exist there, and the build fails with
+# a missing-binary error that points at the compiler rather than at the copy.
+**/node_modules
+.pnpm-store
+
+# Build output — the image builds its own.
+**/dist
+**/build
+**/.turbo
+**/*.tsbuildinfo
+
+# Local state and secrets
+.git
+.env
+.env.*
+!.env.example
+*.pem
+*-service-account*.json
+gcp-key*.json
+data/cache
+apps/web/public/demo-data
+
+# Editor / OS
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Docs and CI are not build inputs
+docs
+*.md
+!README.md
+.github

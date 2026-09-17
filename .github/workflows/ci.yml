@@ -1,0 +1,163 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same branch. A queue of stale runs costs minutes
+# and tells nobody anything the latest commit will not.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── Fast feedback: types and unit tests, no services ───────────────────────
+  check:
+    name: Typecheck and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # @neer/scoring and @neer/insights are pure — no database, no network, no
+      # clock — so the science is verified here without standing anything up.
+      - name: Test
+        run: pnpm test
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Format check
+        run: pnpm format:check
+
+  # ─── The claim that matters: it runs from a clean clone ─────────────────────
+  integration:
+    name: Migrate, seed and compute against ClickHouse
+    runs-on: ubuntu-latest
+    services:
+      clickhouse:
+        image: clickhouse/clickhouse-server:25.3
+        ports:
+          - 8123:8123
+        env:
+          CLICKHOUSE_DB: neer
+          CLICKHOUSE_USER: neer
+          CLICKHOUSE_PASSWORD: neer_local_dev
+          CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+        options: >-
+          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      CLICKHOUSE_URL: http://localhost:8123
+      CLICKHOUSE_USER: neer
+      CLICKHOUSE_PASSWORD: neer_local_dev
+      CLICKHOUSE_DATABASE: neer
+      # A short window keeps the run fast while still exercising every stage.
+      SEED_START_DATE: '2026-06-01'
+      SEED_END_DATE: '2026-07-15'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @neer/shared --filter @neer/scoring --filter @neer/insights build
+
+      - name: Migrate
+        run: pnpm db:migrate
+
+      # Hits the real Open-Meteo API. If it is unavailable the seed should fail
+      # loudly rather than quietly producing a dataset with no weather in it —
+      # every mechanism-based rule depends on that layer being present.
+      - name: Seed
+        run: pnpm db:seed
+
+      - name: Compute index and findings
+        run: pnpm --filter @neer/tools compute
+
+      - name: Export static demo data
+        run: pnpm export:demo
+
+      # Guard the properties that quietly break. Each of these has been wrong at
+      # some point in this repository's history.
+      - name: Assert pipeline invariants
+        run: |
+          node -e "
+            const fs = require('fs');
+            const read = (f) => JSON.parse(fs.readFileSync('apps/web/public/demo-data/' + f, 'utf8'));
+            const sites = read('sites.json');
+            const trends = read('trends.json');
+            const findings = read('findings.json');
+            const fail = (m) => { console.error('FAIL: ' + m); process.exit(1); };
+
+            if (sites.length !== 12) fail('expected 12 sites, got ' + sites.length);
+            if (trends.length === 0) fail('no trend points produced');
+            if (findings.length === 0) fail('no findings produced — the rule engine is silent');
+
+            for (const s of sites) {
+              if (s.sohi === null) continue;
+              if (s.sohi < 0 || s.sohi > 100) fail(s.siteId + ' index out of range: ' + s.sohi);
+              if (s.sohiLow > s.sohi || s.sohiHigh < s.sohi) fail(s.siteId + ' credible interval excludes its own point estimate');
+              if (s.sohiLow < 0 || s.sohiHigh > 100) fail(s.siteId + ' credible interval outside 0..100');
+            }
+
+            // Absent measurements must never be encoded as an impossible value.
+            for (const f of findings) {
+              for (const [k, v] of Object.entries(f.metrics ?? {})) {
+                if (v === -1 && !k.startsWith('sohiDelta')) fail('sentinel -1 survived in ' + f.ruleId + '.' + k);
+              }
+              if (!f.citations) fail(f.ruleId + ' has no citations field');
+              if (!f.actionCitizen || !f.actionMunicipal || !f.actionHealth) fail(f.ruleId + ' is missing an audience action');
+            }
+
+            const disclosure = read('manifest.json').dataDisclosure;
+            if (disclosure.observations !== 'simulated') fail('provenance disclosure lost from the export manifest');
+
+            console.log('OK — ' + sites.length + ' sites, ' + trends.length + ' trend points, ' + findings.length + ' findings');
+          "
+
+  # ─── Reproducibility: the images build from a clean context ────────────────
+  docker:
+    name: Build images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build dashboard image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

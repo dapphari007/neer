@@ -81,7 +81,8 @@ export class LocalForecastProvider extends ForecastProvider {
     // how the error accumulates over the horizon.
     const meanResidual = residuals.reduce((s, r) => s + r, 0) / residuals.length;
     const variance =
-      residuals.reduce((s, r) => s + (r - meanResidual) ** 2, 0) / Math.max(1, residuals.length - 1);
+      residuals.reduce((s, r) => s + (r - meanResidual) ** 2, 0) /
+      Math.max(1, residuals.length - 1);
     const sigma = Math.sqrt(variance);
 
     const lastDay = history.at(-1)!.day;

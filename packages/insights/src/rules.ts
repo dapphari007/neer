@@ -59,10 +59,13 @@ export const RULES: readonly Rule[] = [
         `${dryBefore} dry day(s) immediately before the storm`,
         'catchment is served by a combined sewer',
       ];
-      if (odour > 0) evidence.push(`sewage odour reported in ${(odour * 100).toFixed(0)}% of visits`);
-      if (discharge > 0) evidence.push(`visible discharge reported in ${(discharge * 100).toFixed(0)}% of visits`);
+      if (odour > 0)
+        evidence.push(`sewage odour reported in ${(odour * 100).toFixed(0)}% of visits`);
+      if (discharge > 0)
+        evidence.push(`visible discharge reported in ${(discharge * 100).toFixed(0)}% of visits`);
       if (doMgl !== null && doMgl < 5) evidence.push(`dissolved oxygen ${doMgl.toFixed(1)} mg/L`);
-      if (ammonium !== null && ammonium > 0.5) evidence.push(`ammonium ${ammonium.toFixed(2)} mg NH₄/L`);
+      if (ammonium !== null && ammonium > 0.5)
+        evidence.push(`ammonium ${ammonium.toFixed(2)} mg NH₄/L`);
 
       return {
         severity,
@@ -172,6 +175,12 @@ export const RULES: readonly Rule[] = [
       if (!scum && !(algae >= 30 && tempC >= 20 && phosphate > 0.4)) return null;
 
       const evidence = [`algal cover ${algae.toFixed(0)}%`];
+      // Name the guideline in the evidence, not only in the headline. The
+      // headline is a claim; the evidence is what makes it auditable, and a
+      // reader checking why this fired should find the trigger here.
+      if (scum) {
+        evidence.push('visible surface accumulation — WHO Alert Level 2 trigger');
+      }
       if (tempC > 0) evidence.push(`water temperature ${tempC.toFixed(1)} °C`);
       if (phosphate > 0) evidence.push(`orthophosphate ${phosphate.toFixed(2)} mg PO₄/L`);
       if (ctx.env.consecutiveHotDays >= 3) {
@@ -220,7 +229,9 @@ export const RULES: readonly Rule[] = [
       if (aspt === null || aspt >= 4.5) return null;
 
       const tolerantDominance = metric(ctx.current, 'tolerantDominance');
-      const evidence = [`ASPT ${aspt.toFixed(2)}, against a site reference of ${ctx.site.referenceDoMgl > 0 ? '6.0' : '6.0'}`];
+      const evidence = [
+        `ASPT ${aspt.toFixed(2)}, against a site reference of ${ctx.site.referenceDoMgl > 0 ? '6.0' : '6.0'}`,
+      ];
       if (tolerantDominance !== null) {
         evidence.push(
           `pollution-tolerant taxa make up ${(tolerantDominance * 100).toFixed(0)}% of recorded abundance`,
@@ -267,7 +278,9 @@ export const RULES: readonly Rule[] = [
       const factors = [stagnant, litter, lowOxygen].filter(Boolean).length;
       if (factors < 2) return null;
 
-      const evidence = [`water temperature ${tempC.toFixed(1)} °C, within the transmission envelope`];
+      const evidence = [
+        `water temperature ${tempC.toFixed(1)} °C, within the transmission envelope`,
+      ];
       if (stagnant) evidence.push('stagnant or barely flowing water');
       if (litter) evidence.push('litter providing artificial container habitat');
       if (lowOxygen) evidence.push('organic enrichment indicated by low dissolved oxygen');

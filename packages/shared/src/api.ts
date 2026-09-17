@@ -1,12 +1,7 @@
 import { z } from 'zod';
 import { FindingWithSiteSchema } from './insight';
 import { SiteSummarySchema, SiteSchema } from './site';
-import {
-  AnomalySchema,
-  ForecastPointSchema,
-  HealthScoreSchema,
-  TrendPointSchema,
-} from './health';
+import { AnomalySchema, ForecastPointSchema, HealthScoreSchema, TrendPointSchema } from './health';
 
 /**
  * API response and query contracts.

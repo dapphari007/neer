@@ -30,7 +30,9 @@ import { BigQueryForecastProvider } from './bigquery-forecast.provider';
             logger.log('Forecasting via BigQuery ML (ARIMA_PLUS).');
             return bigquery;
           }
-          logger.warn('FORECAST_PROVIDER=bqml requested but unavailable — using the local forecaster.');
+          logger.warn(
+            'FORECAST_PROVIDER=bqml requested but unavailable — using the local forecaster.',
+          );
           return local;
         }
 

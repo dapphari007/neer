@@ -134,7 +134,11 @@ GROUP BY site_id, toDate(observed_at)`;
 const CURRENT_WINDOW_DAYS = 14;
 
 /** Trailing mean over a numeric series, ignoring nulls. */
-function trailingMean(values: readonly (number | null)[], endIndex: number, window: number): number | null {
+function trailingMean(
+  values: readonly (number | null)[],
+  endIndex: number,
+  window: number,
+): number | null {
   const start = Math.max(0, endIndex - window + 1);
   const present = values.slice(start, endIndex + 1).filter((v): v is number => v !== null);
   return present.length ? present.reduce((s, v) => s + v, 0) / present.length : null;
@@ -159,7 +163,9 @@ export async function computeHealthIndex(client: ClickHouseClient): Promise<void
   }
 
   const taxaByKey = new Map(taxaRows.map((r) => [`${r.site_id}|${r.day}`, r]));
-  const experienceByKey = new Map(experienceRows.map((r) => [`${r.site_id}|${r.day}`, r.experiences]));
+  const experienceByKey = new Map(
+    experienceRows.map((r) => [`${r.site_id}|${r.day}`, r.experiences]),
+  );
   const siteById = new Map(SEED_SITES.map((s) => [s.siteId, s]));
 
   // Group by site so trends and observation gaps can be walked in order.
@@ -383,7 +389,8 @@ export async function computeHealthIndex(client: ClickHouseClient): Promise<void
           pressureScore: result.pressureScore,
           exposureScore: result.exposureScore,
           confidence: result.confidence.overall,
-          sohiDelta7d: sohi7dAgo !== null && sohi7dAgo !== undefined ? result.sohi - sohi7dAgo : null,
+          sohiDelta7d:
+            sohi7dAgo !== null && sohi7dAgo !== undefined ? result.sohi - sohi7dAgo : null,
           sohiDelta30d:
             sohi30dAgo !== null && sohi30dAgo !== undefined ? result.sohi - sohi30dAgo : null,
         },
@@ -468,7 +475,9 @@ export async function computeHealthIndex(client: ClickHouseClient): Promise<void
     }
   }
 
-  console.log(`Scoring ${healthRows.length.toLocaleString()} site-days across ${bySite.size} sites`);
+  console.log(
+    `Scoring ${healthRows.length.toLocaleString()} site-days across ${bySite.size} sites`,
+  );
   await client.command({ query: 'TRUNCATE TABLE IF EXISTS site_health_daily' });
   await insertChunked(client, 'site_health_daily', healthRows);
 
