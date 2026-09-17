@@ -90,6 +90,7 @@ SELECT
     s.lon             AS lon,
     f.day             AS day,
     f.rule_id         AS rule_id,
+    f.rule_version    AS rule_version,
     f.domain          AS domain,
     f.severity        AS severity,
     f.confidence      AS confidence,

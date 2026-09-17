@@ -1,6 +1,14 @@
 import type { ClickHouseClient } from '@clickhouse/client';
 import type { ObserverExperience, RuleContext, TaxonGroup } from '@neer/shared';
-import { computeSohi, METHOD_VERSION, type SohiInputs } from '@neer/scoring';
+import {
+  aggregateSohi,
+  classifySohi,
+  computeSohi,
+  confidenceBand,
+  METHOD_VERSION,
+  type SohiInputs,
+  type SohiResult,
+} from '@neer/scoring';
 import { evaluateRules, RULES } from '@neer/insights';
 import { insertChunked } from './clickhouse';
 import { SEED_SITES } from './sites';
@@ -117,6 +125,14 @@ SELECT
 FROM observations
 GROUP BY site_id, toDate(observed_at)`;
 
+/**
+ * Window for the headline "current" score.
+ *
+ * Matches the window the confidence model already assumes for observation
+ * density, so the score and its uncertainty describe the same span of time.
+ */
+const CURRENT_WINDOW_DAYS = 14;
+
 /** Trailing mean over a numeric series, ignoring nulls. */
 function trailingMean(values: readonly (number | null)[], endIndex: number, window: number): number | null {
   const start = Math.max(0, endIndex - window + 1);
@@ -156,7 +172,17 @@ export async function computeHealthIndex(client: ClickHouseClient): Promise<void
 
   const healthRows: Record<string, unknown>[] = [];
   const findingRows: Record<string, unknown>[] = [];
+  const currentRows: Record<string, unknown>[] = [];
   const now = new Date();
+
+  // Staleness is measured against the newest day anywhere in the dataset, not
+  // against each site's own most recent visit. Measured per site it would always
+  // be zero by construction, which is exactly the coverage blind spot the
+  // monitoring-gap rule exists to surface.
+  const datasetLatestDay = daily.reduce(
+    (latest, row) => (row.day > latest ? row.day : latest),
+    daily[0]!.day,
+  );
 
   for (const [siteId, rows] of bySite) {
     const site = siteById.get(siteId);
@@ -166,6 +192,7 @@ export async function computeHealthIndex(client: ClickHouseClient): Promise<void
     }
 
     const sohiSeries: (number | null)[] = [];
+    const scored: Array<{ day: string; result: SohiResult; nObs: number; nObservers: number }> = [];
     let lastObservedIndex = -1;
 
     for (const [index, row] of rows.entries()) {
@@ -263,6 +290,7 @@ export async function computeHealthIndex(client: ClickHouseClient): Promise<void
 
       const result = computeSohi(inputs);
       sohiSeries.push(result.sohi);
+      scored.push({ day: row.day, result, nObs: row.n_obs, nObservers: row.n_observers });
 
       healthRows.push({
         site_id: siteId,
@@ -386,11 +414,67 @@ export async function computeHealthIndex(client: ClickHouseClient): Promise<void
         });
       }
     }
+
+    // ─── Trailing-window headline ────────────────────────────────────────────
+    // Sub-indices are averaged over the window and then re-aggregated through
+    // the same geometric mean the daily scores use, rather than averaging the
+    // daily SOHI values directly. Those are not the same operation: averaging
+    // composites would let a single catastrophic day be diluted by good ones,
+    // which is precisely the masking the geometric aggregation exists to
+    // prevent. Re-aggregating preserves that property across the window.
+    if (scored.length > 0) {
+      const latestDay = scored.at(-1)!.day;
+      const windowStart = new Date(Date.parse(latestDay) - CURRENT_WINDOW_DAYS * 86_400_000)
+        .toISOString()
+        .slice(0, 10);
+      const window = scored.filter((entry) => entry.day > windowStart);
+      const mean = (pick: (r: SohiResult) => number): number =>
+        window.reduce((sum, entry) => sum + pick(entry.result), 0) / window.length;
+
+      const subIndices = {
+        ecological: mean((r) => r.ecologicalScore),
+        pressure: mean((r) => r.pressureScore),
+        exposure: mean((r) => r.exposureScore),
+      };
+      const sohi = aggregateSohi(subIndices);
+      const confidence = mean((r) => r.confidence.overall);
+      const band = confidenceBand(sohi, confidence);
+      const latest = window.at(-1)!;
+
+      currentRows.push({
+        site_id: siteId,
+        as_of: latestDay,
+        window_start: windowStart,
+        window_days: CURRENT_WINDOW_DAYS,
+        sohi,
+        status: classifySohi(sohi),
+        ecological_score: subIndices.ecological,
+        pressure_score: subIndices.pressure,
+        exposure_score: subIndices.exposure,
+        confidence,
+        sohi_low: band.low,
+        sohi_high: band.high,
+        n_obs: window.reduce((sum, entry) => sum + entry.nObs, 0),
+        n_observers: Math.max(...window.map((entry) => entry.nObservers)),
+        days_since_last_obs: Math.max(
+          0,
+          Math.round((Date.parse(datasetLatestDay) - Date.parse(latestDay)) / 86_400_000),
+        ),
+        drivers: latest.result.drivers
+          .slice(0, 8)
+          .map((d) => [d.label, Number(d.contribution.toFixed(2))] as [string, number]),
+        method_version: METHOD_VERSION,
+      });
+    }
   }
 
   console.log(`Scoring ${healthRows.length.toLocaleString()} site-days across ${bySite.size} sites`);
   await client.command({ query: 'TRUNCATE TABLE IF EXISTS site_health_daily' });
   await insertChunked(client, 'site_health_daily', healthRows);
+
+  console.log(`Writing ${currentRows.length} trailing-${CURRENT_WINDOW_DAYS}-day site summaries`);
+  await client.command({ query: 'TRUNCATE TABLE IF EXISTS site_health_current' });
+  await insertChunked(client, 'site_health_current', currentRows);
 
   console.log(`Writing ${findingRows.length.toLocaleString()} One Health findings`);
   await client.command({ query: 'TRUNCATE TABLE IF EXISTS findings' });
@@ -405,7 +489,7 @@ export async function computeHealthIndex(client: ClickHouseClient): Promise<void
           count()                    AS site_days,
           round(avg(sohi), 1)        AS mean_sohi,
           round(avg(confidence), 2)  AS mean_confidence
-      FROM site_health_daily
+      FROM site_health_current
       GROUP BY status
       ORDER BY mean_sohi DESC`,
     format: 'JSONEachRow',

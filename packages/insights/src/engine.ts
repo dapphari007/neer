@@ -39,7 +39,16 @@ export interface RuleOutcome {
   readonly headline: string;
   readonly mechanism: string;
   readonly evidence: readonly string[];
-  readonly metrics: Readonly<Record<string, number>>;
+  /**
+   * The exact values behind the evidence.
+   *
+   * Nullable because "not measured" is a real and common state for citizen data.
+   * Absent entries are dropped before storage rather than encoded as a sentinel:
+   * an ammonium concentration of -1 is physically impossible, and a number that
+   * cannot occur in nature is precisely the kind of thing that later gets read
+   * as if it could.
+   */
+  readonly metrics: Readonly<Record<string, number | null>>;
   readonly actions: {
     readonly citizen: string;
     readonly municipal: string;
@@ -110,7 +119,11 @@ export function evaluateRules(
       headline: outcome.headline,
       mechanism: outcome.mechanism,
       evidence: [...outcome.evidence],
-      metrics: { ...outcome.metrics },
+      metrics: Object.fromEntries(
+        Object.entries(outcome.metrics).filter(
+          (entry): entry is [string, number] => entry[1] !== null && Number.isFinite(entry[1]),
+        ),
+      ),
       citations: [...rule.citations],
       actions: outcome.actions,
       detectedAt: detectedAt.toISOString(),

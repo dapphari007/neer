@@ -77,8 +77,8 @@ export const RULES: readonly Rule[] = [
           dryDaysBefore: dryBefore,
           sewageOdourRate: odour,
           visibleDischargeRate: discharge,
-          dissolvedOxygenMgl: doMgl ?? -1,
-          ammoniumMgl: ammonium ?? -1,
+          dissolvedOxygenMgl: doMgl,
+          ammoniumMgl: ammonium,
           corroboratingSignals: corroborating,
         },
         actions: {
@@ -139,9 +139,9 @@ export const RULES: readonly Rule[] = [
         evidence,
         metrics: {
           dissolvedOxygenMgl: doMgl,
-          waterTempC: tempC ?? -1,
-          saturationPct: saturationPct ?? -1,
-          ammoniumMgl: ammonium ?? -1,
+          waterTempC: tempC,
+          saturationPct: saturationPct,
+          ammoniumMgl: ammonium,
         },
         actions: {
           citizen:
@@ -234,7 +234,7 @@ export const RULES: readonly Rule[] = [
         mechanism:
           'Sensitive groups — stonefly, mayfly, cased caddisfly — disappear first under organic pollution and low oxygen, leaving worms, bloodworm and hoglouse. Because the community reflects conditions over months rather than the moment of sampling, this indicates sustained pressure, not a single event.',
         evidence,
-        metrics: { aspt, tolerantDominance: tolerantDominance ?? -1 },
+        metrics: { aspt, tolerantDominance: tolerantDominance },
         actions: {
           citizen:
             'Repeat the kick-sample survey next season. Community change is slow, so a consistent series from the same reach is worth far more than any individual survey.',
@@ -281,8 +281,8 @@ export const RULES: readonly Rule[] = [
         evidence,
         metrics: {
           waterTempC: tempC,
-          stagnantFraction: metric(ctx.current, 'stagnantFraction') ?? -1,
-          litterScore: metric(ctx.current, 'litterScore') ?? -1,
+          stagnantFraction: metric(ctx.current, 'stagnantFraction'),
+          litterScore: metric(ctx.current, 'litterScore'),
           contributingFactors: factors,
         },
         actions: {
@@ -468,9 +468,9 @@ export const RULES: readonly Rule[] = [
           'Elevated nitrogen and phosphorus drive excessive algal and plant growth. The subsequent decay consumes oxygen, and in warm, slow water the same enrichment is the precondition for cyanobacterial blooms.',
         evidence,
         metrics: {
-          phosphateMgl: phosphate ?? -1,
-          nitrateMgl: nitrate ?? -1,
-          phosphateMa30: ma30Phosphate ?? -1,
+          phosphateMgl: phosphate,
+          nitrateMgl: nitrate,
+          phosphateMa30: ma30Phosphate,
         },
         actions: {
           citizen:
