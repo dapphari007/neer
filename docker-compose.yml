@@ -1,0 +1,86 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Neer — local stack
+#
+#   docker compose up                 → everything (ClickHouse + API + dashboard)
+#   docker compose up -d clickhouse   → database only, then `pnpm dev` on the host
+#
+# No credentials, no cloud accounts, no API keys are required to bring this up.
+# That is deliberate: a reviewer should be able to clone and run in one command.
+# ──────────────────────────────────────────────────────────────────────────────
+
+name: neer
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.3
+    container_name: neer-clickhouse
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DATABASE:-neer}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-neer}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-neer_local_dev}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    ports:
+      - '${CLICKHOUSE_HTTP_PORT:-8123}:8123' # HTTP interface — used by the API
+      - '${CLICKHOUSE_TCP_PORT:-9000}:9000'  # native protocol — used by clickhouse-client
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - ./infra/clickhouse/config:/etc/clickhouse-server/config.d:ro
+    ulimits:
+      # ClickHouse opens a large number of files during merges; the Docker
+      # default of 1024 causes "Too many open files" under any real load.
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:8123/ping']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: neer-api
+    restart: unless-stopped
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_PORT: 3000
+      API_CORS_ORIGIN: ${API_CORS_ORIGIN:-http://localhost:5173}
+      # Inside the compose network the service name resolves, not localhost.
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-neer}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-neer_local_dev}
+      CLICKHOUSE_DATABASE: ${CLICKHOUSE_DATABASE:-neer}
+      FORECAST_PROVIDER: ${FORECAST_PROVIDER:-local}
+      NARRATIVE_PROVIDER: ${NARRATIVE_PROVIDER:-template}
+    ports:
+      - '${API_PORT:-3000}:3000'
+    healthcheck:
+      test: ['CMD', 'node', '-e', "require('http').get('http://localhost:3000/api/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3000}
+    container_name: neer-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - '${WEB_PORT:-5173}:80'
+
+volumes:
+  clickhouse-data:

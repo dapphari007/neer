@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!--
+  Local development overrides.
+
+  ClickHouse defaults assume a dedicated server. These caps keep it well-behaved
+  as one container among several on a laptop, which is the environment a hackathon
+  reviewer will actually run it in. None of this is tuning for performance — the
+  dataset is small; it is tuning to not evict the reviewer's browser from memory.
+-->
+<clickhouse>
+    <logger>
+        <level>warning</level>
+        <console>1</console>
+    </logger>
+
+    <!-- 2 GiB ceiling for the server process. -->
+    <max_server_memory_usage>2147483648</max_server_memory_usage>
+
+    <!-- The dataset is a few hundred thousand rows; large mark/uncompressed
+         caches would be pure waste here. -->
+    <mark_cache_size>268435456</mark_cache_size>
+    <uncompressed_cache_size>134217728</uncompressed_cache_size>
+
+    <!-- Keep background merge concurrency modest so merges do not compete with
+         the API and the dev server for CPU. -->
+    <background_pool_size>4</background_pool_size>
+    <background_schedule_pool_size>4</background_schedule_pool_size>
+
+    <!-- Query log is genuinely useful when demonstrating that the rollups are
+         doing the work, but cap its retention so it cannot outgrow the data. -->
+    <query_log>
+        <database>system</database>
+        <table>query_log</table>
+        <ttl>event_date + INTERVAL 7 DAY DELETE</ttl>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+    </query_log>
+</clickhouse>
