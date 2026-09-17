@@ -13,6 +13,29 @@
         <console>1</console>
     </logger>
 
+    <!--
+      Listen on all interfaces.
+
+      This is required, not cosmetic. The stock config.xml in the official image
+      sets only:
+
+          <listen_host>::1</listen_host>
+          <listen_host>127.0.0.1</listen_host>
+
+      so the server listens on the *container's own* loopback and nothing else.
+      Docker's published port then forwards to the container's eth0 address,
+      which nothing is listening on, and the connection is accepted by the proxy
+      and immediately closed by the container. The symptom is a healthy
+      container (its healthcheck runs inside, over loopback, and passes) that the
+      host cannot reach — "Empty reply from server" rather than "connection
+      refused", which sends you hunting for an application fault that is not
+      there.
+
+      replace="replace" swaps the whole listen_host set rather than appending to
+      it, avoiding a redundant bind on addresses 0.0.0.0 already covers.
+    -->
+    <listen_host replace="replace">0.0.0.0</listen_host>
+
     <!-- 2 GiB ceiling for the server process. -->
     <max_server_memory_usage>2147483648</max_server_memory_usage>
 
@@ -21,10 +44,14 @@
     <mark_cache_size>268435456</mark_cache_size>
     <uncompressed_cache_size>134217728</uncompressed_cache_size>
 
-    <!-- Keep background merge concurrency modest so merges do not compete with
-         the API and the dev server for CPU. -->
-    <background_pool_size>4</background_pool_size>
-    <background_schedule_pool_size>4</background_schedule_pool_size>
+    <!-- Background pool sizes are deliberately left at their defaults.
+         ClickHouse enforces
+           background_pool_size × background_merges_mutations_concurrency_ratio
+             ≥ number_of_free_entries_in_pool_to_execute_mutation (20)
+         and refuses to start if the product is smaller, because mutations
+         could never acquire a slot. Shrinking the pool to be neighbourly on a
+         laptop trips that invariant; the memory caps above achieve the same
+         goal without breaking startup. -->
 
     <!-- Query log is genuinely useful when demonstrating that the rollups are
          doing the work, but cap its retention so it cannot outgrow the data. -->

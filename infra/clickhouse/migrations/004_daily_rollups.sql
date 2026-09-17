@@ -55,10 +55,14 @@ CREATE TABLE IF NOT EXISTS site_daily_metrics
     foam_rate            AggregateFunction(avg, UInt8),
     discharge_rate       AggregateFunction(avg, UInt8),
     sewage_odour_rate    AggregateFunction(avg, UInt8),
-    algae_avg            AggregateFunction(avg, Nullable(UInt8)),
+    algae_avg            AggregateFunction(avg, Nullable(UInt8))
 
-    -- biology
-    taxa_richness        AggregateFunction(uniqExact, String)
+    -- NOTE: taxon richness is deliberately NOT aggregated here. It would need
+    -- arrayJoin(taxa_groups) in the view's SELECT, and arrayJoin expands the row
+    -- set for *every* aggregate in that SELECT, not only the one referencing it —
+    -- so countState() would count once per taxon rather than once per visit and
+    -- silently inflate every observation count downstream. Richness is derived
+    -- in a separate query against the raw grain instead.
 )
 ENGINE = AggregatingMergeTree
 PARTITION BY toYYYYMM(day)
@@ -95,9 +99,7 @@ SELECT
     avgState(foam_present)                                     AS foam_rate,
     avgState(visible_discharge)                                AS discharge_rate,
     avgState(toUInt8(odour = 'sewage'))                        AS sewage_odour_rate,
-    avgState(algae_cover_pct)                                  AS algae_avg,
-
-    uniqExactState(arrayJoin(taxa_groups))                     AS taxa_richness
+    avgState(algae_cover_pct)                                  AS algae_avg
 FROM observations
 GROUP BY site_id, day;
 

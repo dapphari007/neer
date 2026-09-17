@@ -68,9 +68,17 @@ COMMENT 'Deterministic, auditable One Health findings';
 
 
 -- ─── Active findings, ranked ─────────────────────────────────────────────────
--- The overview alert list. Ranking is severity first, then rule confidence —
--- a high-severity finding the engine is unsure of still outranks a certain
--- low-severity one, because the cost of missing the former is higher.
+--
+-- The alert list shows the CURRENT state of each rule at each site — the most
+-- recent day a rule fired — not every day it has ever fired.
+--
+-- Without the `LIMIT 1 BY`, structural findings drown everything else. A site
+-- with five outfall pipes trips the AMR pressure rule every single day it has
+-- data, because the pipes do not go away; in a six-month window that is one
+-- rule producing hundreds of identical rows and burying the acute sewage spill
+-- that actually needs attention today. Deduplicating to the latest occurrence
+-- keeps a persistent condition visible exactly once, which is how often it is
+-- worth saying.
 
 CREATE VIEW IF NOT EXISTS findings_active AS
 SELECT
@@ -95,7 +103,12 @@ SELECT
     f.action_health   AS action_health,
     f.detected_at     AS detected_at,
     f.valid_until     AS valid_until,
+    -- Severity dominates, confidence breaks ties. A severe finding the engine is
+    -- unsure of still outranks a certain trivial one: the cost of missing the
+    -- former exceeds the cost of investigating it.
     toUInt8(f.severity) * 10 + toUInt8(f.confidence) AS rank_score
 FROM findings AS f
 INNER JOIN sites AS s ON s.site_id = f.site_id
-WHERE f.valid_until >= now();
+WHERE f.valid_until >= now()
+ORDER BY f.site_id, f.rule_id, f.day DESC
+LIMIT 1 BY f.site_id, f.rule_id;
