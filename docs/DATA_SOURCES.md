@@ -157,7 +157,7 @@ docker compose up -d clickhouse
 pnpm db:migrate                       # schema and materialized views
 pnpm db:seed                          # fetch real weather, generate observations
 pnpm --filter @neer/tools compute     # score every site-day, evaluate rules
-pnpm export:demo                      # static JSON for the backend-free demo
+pnpm export:demo                      # static JSON for the hosted dashboard
 ```
 
 Every step is idempotent. Re-running `seed` replaces rather than duplicates — which matters, because

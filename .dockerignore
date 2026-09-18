@@ -22,7 +22,7 @@
 *-service-account*.json
 gcp-key*.json
 data/cache
-apps/web/public/demo-data
+apps/web/public/data
 
 # Editor / OS
 .vscode

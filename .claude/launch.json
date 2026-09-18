@@ -6,6 +6,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@neer/web", "dev"],
       "port": 5173
+    },
+    {
+      "name": "neer-web-static",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@neer/web", "preview", "--port", "4173", "--strictPort"],
+      "port": 4173
     }
   ]
 }

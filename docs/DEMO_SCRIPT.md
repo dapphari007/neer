@@ -42,7 +42,7 @@ its share card. Keep it moving — fifteen seconds.
 > "Neer turns those observations into something a ten-year-old can read. Every stream gets a score,
 > a face and a colour — the Water Framework Directive's own colour code. 'Turbidity 32 NTU' becomes
 > 'about as cloudy as tea with milk', with the real number underneath. Kids mark what they spot,
-> and one tap makes a shareable card — with the demo-data label drawn into the image itself.
+> and one tap makes a shareable card — with the sample-data label drawn into the image itself.
 >
 > Same data, second front door."
 

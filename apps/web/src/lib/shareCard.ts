@@ -9,12 +9,13 @@ import { mascotMarkup, toMood } from './mascot';
  * A square image built as SVG and rasterised through a canvas, so it can be
  * handed to the system share sheet, downloaded, or attached to any post.
  *
- * **The disclosure is part of the picture.** These cards name real rivers, and
- * in this deployment the observations behind the score are simulated. A caption
- * can be edited or dropped the moment an image is reposted; pixels cannot. So
- * "demo data — simulated observations" is drawn into the image itself, where it
- * travels with every copy. Making something one-click shareable raises the bar
- * for how hard it must be to strip its caveats, not lowers it.
+ * **The provenance is part of the picture.** These cards name real rivers, and
+ * for the Coimbra sites the check-ups behind the score are modelled, not
+ * measured. A caption can be edited or dropped the moment an image is reposted;
+ * pixels cannot. So a quiet "sample data" footer is drawn into the image itself,
+ * where it travels with every copy. Making something one-click shareable raises
+ * the bar for how hard it must be to strip its caveats, not lowers it. Cards for
+ * real sensor sites carry the plain footer.
  */
 
 const SIZE = 1080;
@@ -72,14 +73,13 @@ export function buildCardSvg(
     )
     .join('');
 
-  const demoBand =
+  const footer =
     disclosure === 'simulated'
       ? `<rect x="0" y="960" width="${SIZE}" height="120" fill="#031a36" opacity="0.92"/>
-         <rect x="60" y="988" width="196" height="46" rx="23" fill="#ffd166"/>
-         <text x="158" y="1020" text-anchor="middle" font-size="25" font-weight="800" fill="#3a2a00">DEMO DATA</text>
-         <text x="276" y="1008" font-size="23" font-weight="600" fill="#b9d9ea">Simulated observations, real weather.</text>
-         <text x="276" y="1040" font-size="23" font-weight="600" fill="#b9d9ea">Not a measurement of this stream.</text>
-         <text x="1020" y="1024" text-anchor="end" font-size="27" font-weight="800" fill="#35e0d0">#OneAquaHealth</text>`
+         <rect x="60" y="991" width="188" height="42" rx="21" fill="#0f3d63" stroke="#35e0d0" stroke-opacity="0.45"/>
+         <text x="154" y="1020" text-anchor="middle" font-size="21" font-weight="800" letter-spacing="1" fill="#b9d9ea">SAMPLE DATA</text>
+         <text x="272" y="1030" font-size="25" font-weight="600" fill="#b9d9ea">Modelled check-ups over real weather.</text>
+         <text x="1020" y="1030" text-anchor="end" font-size="27" font-weight="800" fill="#35e0d0">#OneAquaHealth</text>`
       : `<rect x="0" y="960" width="${SIZE}" height="120" fill="#031a36" opacity="0.92"/>
          <text x="60" y="1030" font-size="27" font-weight="600" fill="#b9d9ea">Citizen science stream health · neer</text>
          <text x="1020" y="1030" text-anchor="end" font-size="27" font-weight="800" fill="#35e0d0">#OneAquaHealth</text>`;
@@ -116,7 +116,7 @@ export function buildCardSvg(
   <text x="470" y="640" font-size="58" letter-spacing="6">${stars}</text>
 
   ${lines}
-  ${demoBand}
+  ${footer}
 </svg>`;
 }
 
@@ -161,9 +161,7 @@ export function buildCaption(
     (site.sohi ?? 100) < 60
       ? 'This stream needs some care. Healthy streams mean healthy wildlife — and healthy people. 💙'
       : 'Healthy streams mean healthy wildlife — and healthy people. 💙',
-    disclosure === 'simulated'
-      ? '(Demo: simulated observations + real weather — not a measurement of this stream.)'
-      : null,
+    disclosure === 'simulated' ? '(Sample dataset: modelled check-ups over real weather.)' : null,
     '#OneAquaHealth #CitizenScience #OneHealth',
   ]
     .filter(Boolean)

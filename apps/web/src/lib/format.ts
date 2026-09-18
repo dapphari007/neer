@@ -78,10 +78,14 @@ export const longDate = (iso: string): string =>
     timeZone: 'UTC',
   });
 
-/** Provenance chip text. Never blank: an unlabelled site would read as real. */
+/**
+ * Provenance chip text. Never blank: an unlabelled site would read as measured.
+ * Coimbra sites carry a modelled sample dataset; the chip says so in two quiet
+ * words rather than a banner, and the method page carries the full statement.
+ */
 export const sourceLabel = (source: string | undefined): { cls: string; text: string } =>
   source === 'sensor'
     ? { cls: 'sensor', text: 'Real sensor' }
     : source === 'citizen'
       ? { cls: 'sensor', text: 'Real citizen data' }
-      : { cls: 'simulated', text: 'Simulated' };
+      : { cls: 'simulated', text: 'Sample data' };

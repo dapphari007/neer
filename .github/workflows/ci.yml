@@ -95,7 +95,7 @@ jobs:
       - name: Compute index and findings
         run: pnpm --filter @neer/tools compute
 
-      - name: Export static demo data
+      - name: Export static data
         run: pnpm export:demo
 
       # Guard the properties that quietly break. Each of these has been wrong at
@@ -104,7 +104,7 @@ jobs:
         run: |
           node -e "
             const fs = require('fs');
-            const read = (f) => JSON.parse(fs.readFileSync('apps/web/public/demo-data/' + f, 'utf8'));
+            const read = (f) => JSON.parse(fs.readFileSync('apps/web/public/data/' + f, 'utf8'));
             const sites = read('sites.json');
             const trends = read('trends.json');
             const findings = read('findings.json');

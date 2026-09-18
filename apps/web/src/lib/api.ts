@@ -250,10 +250,10 @@ class StaticAdapter implements DataAdapter {
     const existing = this.cache.get(file);
     if (existing) return existing as Promise<T>;
 
-    const promise = fetch(`${import.meta.env.BASE_URL}demo-data/${file}`).then((response) => {
+    const promise = fetch(`${import.meta.env.BASE_URL}data/${file}`).then((response) => {
       if (!response.ok) {
         throw new Error(
-          `Demo data not found (${file}). Run \`pnpm export:demo\` to generate it, or set VITE_API_BASE_URL to use the live API.`,
+          `Exported data not found (${file}). Run \`pnpm export:demo\` to generate it, or set VITE_API_BASE_URL to use the live API.`,
         );
       }
       return response.json();

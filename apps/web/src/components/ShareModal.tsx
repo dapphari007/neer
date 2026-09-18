@@ -210,9 +210,9 @@ export function ShareModal({ site, comparisons, disclosure, onClose, onShared }:
 
           {disclosure === 'simulated' && (
             <p className="citation" style={{ marginTop: 'auto' }}>
-              The "demo data" label is part of the image on purpose. These cards name real rivers
-              and the observations here are simulated — a caption can be deleted when a picture is
-              reposted, so the honesty has to live in the pixels.
+              The sample-data footer is part of the image on purpose. These cards name real rivers,
+              and the Coimbra check-ups are modelled rather than measured — a caption can be deleted
+              when a picture is reposted, so the label lives in the pixels.
             </p>
           )}
         </div>

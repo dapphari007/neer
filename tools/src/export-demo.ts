@@ -22,7 +22,7 @@ import type { ClickHouseClient } from '@clickhouse/client';
  * demo, it is the same computed output the API serves.
  */
 
-const OUTPUT_DIR = resolve(__dirname, '../../apps/web/public/demo-data');
+const OUTPUT_DIR = resolve(__dirname, '../../apps/web/public/data');
 
 interface ExportSpec {
   readonly file: string;

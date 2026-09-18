@@ -1,3 +1,4 @@
+import { REPO_URL } from '../lib/links';
 import { useMemo } from 'react';
 
 /**
@@ -116,7 +117,10 @@ export function Seafloor() {
       <p className="seafloor-note">
         Neer · built for the IEEE OneAquaHealth Global Hackathon 2026 · map data © OpenStreetMap
         contributors · weather by Open-Meteo · contains Environment Agency information © Environment
-        Agency and database right
+        Agency and database right ·{' '}
+        <a href={REPO_URL} target="_blank" rel="noreferrer">
+          source on GitHub
+        </a>
       </p>
     </footer>
   );

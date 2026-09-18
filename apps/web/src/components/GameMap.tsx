@@ -174,7 +174,7 @@ function paintPin(entry: PinEntry, site: SiteSummary): void {
   const provenance = sourceLabel(site.source);
   entry.card.prov.style.color = provenance.cls === 'sensor' ? '#0f7a4a' : '#8a6100';
   entry.card.prov.textContent =
-    provenance.cls === 'sensor' ? '📡 Real sensor — live readings' : '🧪 Simulated check-ups';
+    provenance.cls === 'sensor' ? '📡 Real sensor readings' : `🧪 ${provenance.text}`;
 
   entry.marker.setLngLat([site.lon, site.lat]);
 }

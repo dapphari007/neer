@@ -56,9 +56,9 @@ never scored differently. Three rules keep the Explorer side honest rather than 
   printed under every analogy. If a parameter was not measured, the card says so instead of guessing.
 - **Safety advice is never simplified.** Findings are retold in plain language, but “what you can
   do” is the rule engine's own citizen action, unedited.
-- **The demo-data label is drawn into every share card's pixels.** The cards name real rivers and
-  the observations here are simulated; a caption can be deleted when an image is reposted, so the
-  caveat has to live in the image. Nothing is ever posted _for_ anyone — the app holds no social
+- **A sample-data footer is drawn into every Coimbra share card's pixels.** The cards name real
+  rivers and the Coimbra check-ups are modelled; a caption can be deleted when an image is
+  reposted, so the label has to live in the image. Real sensor sites get the plain footer. Nothing is ever posted _for_ anyone — the app holds no social
   accounts or tokens, and the person always lands in their own app with the final say.
 
 Map marks are personal field notes stored on the device only. They never feed the index, and
@@ -241,6 +241,10 @@ any CDN instantly, forever, for nothing:
 ```bash
 pnpm export:demo && pnpm --filter @neer/web build   # deploy dist/ anywhere static
 ```
+
+A `vercel.json` at the repository root builds exactly this on Vercel's free tier: import the
+repository, deploy, nothing to configure ([`docs/DEPLOY.md`](docs/DEPLOY.md)). The exported JSON is
+committed so the host never needs a database.
 
 Nothing is faked to make this work — the static files are the same computed output the API returns.
 Real deployment costs are in [`COSTS.md`](COSTS.md).

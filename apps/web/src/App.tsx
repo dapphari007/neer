@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   adapter,
-  type DataDisclosure,
   type Finding,
   type LiveEvent,
   type Measurements,
@@ -37,7 +36,6 @@ export function App() {
   const [sites, setSites] = useState<SiteSummary[] | null>(null);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [measurements, setMeasurements] = useState<Measurements[]>([]);
-  const [disclosure, setDisclosure] = useState<DataDisclosure | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>('explorer');
   const [route, setRoute] = useState<Route>({ view: 'home' });
@@ -63,9 +61,9 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    Promise.all([load(), adapter.getDisclosure()])
-      .then(([, loadedDisclosure]) => setDisclosure(loadedDisclosure))
-      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)));
+    load().catch((cause: unknown) =>
+      setError(cause instanceof Error ? cause.message : String(cause)),
+    );
   }, [load]);
 
   // ─── Live events ───────────────────────────────────────────────────────────
@@ -114,8 +112,6 @@ export function App() {
     window.scrollTo({ top: 0 });
   }, [route, mode]);
 
-  const anySimulated = sites?.some((s) => (s.source ?? 'simulated') === 'simulated') ?? true;
-  const anySensor = sites?.some((s) => s.source === 'sensor') ?? false;
   const openSite = (siteId: string) => setRoute({ view: 'site', siteId });
 
   return (
@@ -140,12 +136,16 @@ export function App() {
               </span>
             </button>
 
-            <LivePill
-              connected={connected}
-              lastEventAt={lastEventAt}
-              lastEventLabel={lastEventLabel}
-              isStatic={adapter.kind === 'static'}
-            />
+            {/* Only the live build has an event stream to report on. The hosted
+                snapshot does not change, so it shows no indicator at all rather
+                than a pulsing dot over data that cannot move. */}
+            {adapter.kind === 'live' && (
+              <LivePill
+                connected={connected}
+                lastEventAt={lastEventAt}
+                lastEventLabel={lastEventLabel}
+              />
+            )}
 
             <div className="mode-switch" role="group" aria-label="Choose how to explore">
               <button
@@ -183,53 +183,6 @@ export function App() {
         </header>
 
         <main className="shell">
-          {/* Not dismissible, and above the data: nobody reaches a score without
-              first passing the statement of what is measured and what is modelled.
-              Now per source, because the network mixes real sensors with the
-              simulated pilot. */}
-          {disclosure && anySimulated && (
-            <div className="provenance" role="note">
-              <span aria-hidden="true">🧪</span>
-              <span>
-                <strong>Two kinds of stream on this map.</strong>{' '}
-                {mode === 'explorer' ? (
-                  <>
-                    The Coimbra streams have <strong>pretend check-ups</strong> made by a computer
-                    (with real weather), so we can show how Neer works.
-                    {anySensor && (
-                      <>
-                        {' '}
-                        The streams marked <strong>Real sensor</strong> are measured by real
-                        instruments in English rivers, updating every few minutes.
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    Coimbra sites carry <strong>simulated</strong> observations from a documented
-                    physical model over real Open-Meteo weather; nothing there describes a real
-                    stream.
-                    {anySensor && (
-                      <>
-                        {' '}
-                        Sites marked <strong>Real sensor</strong> are Environment Agency
-                        water-quality sondes, ingested live and unchecked by the EA's own quality
-                        review.
-                      </>
-                    )}
-                  </>
-                )}{' '}
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => setRoute({ view: 'method' })}
-                >
-                  How it works
-                </button>
-              </span>
-            </div>
-          )}
-
           {error && (
             <div className="error-box">
               <p>{error}</p>

@@ -22,7 +22,8 @@ gcp-key*.json
 # data artefacts
 data/cache/
 data/raw/
-apps/web/public/demo-data/
+# apps/web/public/data/ is committed on purpose: it is the snapshot the hosted
+# site serves, and the host has no ClickHouse to regenerate it from.
 
 # editor / os
 .vscode/*
