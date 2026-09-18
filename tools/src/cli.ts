@@ -78,6 +78,7 @@ async function commandSeed(): Promise<void> {
         provider_ref: '',
         outfall_count: s.outfallCount,
         reference_aspt: s.referenceAspt,
+        active: 1,
       })),
     );
 

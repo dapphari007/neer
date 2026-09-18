@@ -194,6 +194,7 @@ export function stationToSite(station: EaStation): SiteRow {
     provider_ref: station.id,
     outfall_count: 0,
     reference_aspt: 6,
+    active: 1,
   };
 }
 

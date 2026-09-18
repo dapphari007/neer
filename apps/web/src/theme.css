@@ -1683,6 +1683,15 @@ details summary {
   .legend-hud {
     display: none;
   }
+  .region-hud {
+    top: auto;
+    right: auto;
+    left: 10px;
+    bottom: 84px;
+  }
+  .map-frame.compact .region-hud {
+    bottom: 14px;
+  }
   .two-col {
     grid-template-columns: 1fr !important;
   }
@@ -1776,27 +1785,56 @@ details summary {
 
 /* ─── region tabs above the map ───────────────────────────────────────────── */
 
-.region-tabs {
+/* Region switch: lives inside the frame beside the zoom control, so the map
+   keeps its full height and the control reads as part of the board. */
+.region-hud {
+  top: 14px;
+  right: 54px;
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
+  gap: 3px;
+  padding: 4px;
+  border-radius: 999px;
+  max-width: calc(100% - 80px);
 }
 
-.region-tabs button {
-  border: 1px solid var(--border-strong);
-  background: rgba(3, 26, 54, 0.5);
+.region-hud button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  background: transparent;
   border-radius: 999px;
-  padding: 7px 14px;
-  font-size: 13px;
+  padding: 6px 10px 6px 13px;
+  font-size: 12.5px;
   font-weight: 800;
   color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
 }
 
-.region-tabs button[aria-pressed='true'] {
+.region-hud button:hover {
+  color: var(--text-primary);
+}
+
+.region-hud button small {
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.region-hud button[aria-pressed='true'] {
   background: var(--glow);
   color: #03253f;
-  border-color: var(--glow);
+}
+
+.region-hud button[aria-pressed='true'] small {
+  background: rgba(3, 37, 63, 0.18);
 }
 
 /* Sensor sites get a square-cornered pin so the shape says "instrument", not

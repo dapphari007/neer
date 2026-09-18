@@ -116,7 +116,7 @@ export async function loadSites(
           toString(source)              AS source,
           region
       FROM sites FINAL
-      WHERE ${SITE_FILTER}
+      WHERE ${SITE_FILTER} AND active = 1
       ORDER BY site_id`,
     query_params: { siteIds },
     format: 'JSONEachRow',

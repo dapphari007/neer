@@ -36,6 +36,8 @@ export interface SiteRow {
   provider_ref: string;
   outfall_count: number;
   reference_aspt: number;
+  /** 0 = retired: history kept, hidden from the map and the overview. */
+  active: 0 | 1;
 }
 
 export interface EnvReadingRow {

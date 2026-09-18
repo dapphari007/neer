@@ -66,6 +66,7 @@ const EXPORTS: readonly ExportSpec[] = [
           toString(h.as_of)                AS asOf
       FROM sites AS s FINAL
       LEFT JOIN (SELECT * FROM site_health_current FINAL) AS h ON h.site_id = s.site_id
+      WHERE s.active = 1
       ORDER BY s.site_id`,
   },
   {

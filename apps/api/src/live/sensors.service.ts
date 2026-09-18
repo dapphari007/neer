@@ -78,8 +78,10 @@ export class SensorIngestService implements OnModuleInit, OnModuleDestroy {
         // Sites is a ReplacingMergeTree on updated_at: re-inserting a station
         // refreshes its row rather than duplicating it.
         await insertRows(this.clickhouse.writer, 'sites', stations.map(stationToSite));
+        const retired = await this.retireUnfollowed(stations.map((s) => s.id));
         this.logger.log(
-          `Following ${stations.length} live EA stations: ${stations.map((s) => s.name).join(' · ')}`,
+          `Following ${stations.length} live EA stations: ${stations.map((s) => s.name).join(' · ')}` +
+            (retired > 0 ? ` (${retired} previously followed station(s) retired)` : ''),
         );
       }
     } catch (error) {
@@ -89,6 +91,34 @@ export class SensorIngestService implements OnModuleInit, OnModuleDestroy {
       );
     }
     await this.poll();
+  }
+
+  /**
+   * Sondes move. A station that discovery no longer returns keeps its history,
+   * but its site row is re-inserted with `active = 0` so it leaves the map and
+   * the overview. If it reports again, discovery re-inserts it with
+   * `active = 1`, and the ReplacingMergeTree keeps whichever row is newer.
+   * Nothing is deleted.
+   */
+  private async retireUnfollowed(followedRefs: string[]): Promise<number> {
+    const stale = await this.clickhouse.query<{ site_id: string }>(
+      `SELECT site_id FROM sites FINAL
+       WHERE provider = 'ea-hydrology' AND active = 1
+         AND provider_ref NOT IN {refs:Array(String)}`,
+      { refs: followedRefs },
+    );
+    if (stale.length === 0) return 0;
+    await this.clickhouse.writer.command({
+      query: `INSERT INTO sites
+              SELECT * REPLACE (0 AS active, now() AS updated_at)
+              FROM sites FINAL
+              WHERE site_id IN {siteIds:Array(String)}`,
+      query_params: { siteIds: stale.map((row) => row.site_id) },
+    });
+    this.logger.log(
+      `Retired ${stale.length} sensor site(s): ${stale.map((row) => row.site_id).join(', ')}`,
+    );
+    return stale.length;
   }
 
   async poll(): Promise<void> {

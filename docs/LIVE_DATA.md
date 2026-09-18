@@ -87,6 +87,12 @@ hours the service ranks live stations by how many parameters they report, keeps 
 includes the River Lee at Springfield Park in London — an urban river reporting all six
 parameters.
 
+**Stations that stop reporting are retired, not deleted.** Each discovery compares its result
+with the sensor sites already registered; any station no longer returned has its site row
+re-inserted with `active = 0`. Its observations and daily scores stay in the database, it leaves
+the map and the overview, and if it reports again it is re-inserted with `active = 1` — the
+`sites` table is a ReplacingMergeTree, so the newest row wins either way (migration 010).
+
 **Ingestion is idempotent by asking the database, not by deduplicating.** `observations` is an
 append-only MergeTree. Each poll asks for the latest stored reading per station and fetches only
 newer ones. Readings are folded into one observation per fifteen-minute bucket, so two sondes on
