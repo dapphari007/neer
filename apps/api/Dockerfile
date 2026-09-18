@@ -19,6 +19,7 @@ COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY packages/shared/package.json      packages/shared/
 COPY packages/scoring/package.json     packages/scoring/
 COPY packages/insights/package.json    packages/insights/
+COPY packages/pipeline/package.json    packages/pipeline/
 COPY apps/api/package.json             apps/api/
 COPY apps/web/package.json             apps/web/
 COPY tools/package.json                tools/
@@ -29,7 +30,7 @@ FROM deps AS build
 COPY tsconfig.base.json ./
 COPY packages ./packages
 COPY apps/api ./apps/api
-RUN pnpm --filter @neer/shared --filter @neer/scoring --filter @neer/insights --filter @neer/api build
+RUN pnpm --filter @neer/shared --filter @neer/scoring --filter @neer/insights --filter @neer/pipeline --filter @neer/api build
 
 # ─── runtime ──────────────────────────────────────────────────────────────────
 FROM base AS runtime

@@ -124,6 +124,16 @@ Honest accounting, because these dominate and are routinely omitted:
 
 ---
 
+## Live API budgets
+
+| Source                      | Calls                                                                      | Free-tier limit            | Headroom                                                    |
+| --------------------------- | -------------------------------------------------------------------------- | -------------------------- | ----------------------------------------------------------- |
+| Open-Meteo weather refresh  | 2 per site per 15 min → ~3,500/day at 18 sites                             | 10,000/day, non-commercial | fine to ~50 sites; beyond that lengthen the interval or pay |
+| EA Hydrology sensor polling | ~6 per station per 10 min + discovery every 6 h → ~5,000/day at 6 stations | unmetered, OGL             | polite; back off if throttled                               |
+
+Neither costs money at pilot scale. Both are external dependencies a production deployment should
+cache and monitor; `GET /api/live/status` already reports the last run of each.
+
 ## Licence constraints that carry cost
 
 **Open-Meteo's free tier is non-commercial.** Explicitly: personal, non-profit and academic use.

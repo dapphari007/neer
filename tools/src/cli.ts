@@ -5,6 +5,8 @@ import { fetchEnvironmentalReadings } from './weather';
 import { simulateObservations } from './simulate';
 import { computeHealthIndex } from './compute';
 import { exportDemoData } from './export-demo';
+import { runFieldCrew } from './live';
+import { runImport } from './import';
 
 /**
  * Neer batch CLI.
@@ -70,6 +72,12 @@ async function commandSeed(): Promise<void> {
         population_within_1km: s.populationWithin1km,
         reference_do_mgl: s.referenceDoMgl,
         reference_cond_uscm: s.referenceCondUscm,
+        source: 'simulated',
+        region: 'Coimbra',
+        provider: '',
+        provider_ref: '',
+        outfall_count: s.outfallCount,
+        reference_aspt: s.referenceAspt,
       })),
     );
 
@@ -149,10 +157,37 @@ async function commandExportDemo(): Promise<void> {
   }
 }
 
+async function commandLive(): Promise<void> {
+  const client = createNeerClient();
+  await waitForClickHouse(client);
+  await runFieldCrew({
+    client,
+    apiUrl: (process.env.API_URL ?? 'http://localhost:3000').replace(/[/]$/, ''),
+    intervalMs: Number(process.env.LIVE_INTERVAL_MS ?? 25_000),
+  });
+}
+
 async function main(): Promise<void> {
   const command = process.argv[2];
 
   switch (command) {
+    case 'import': {
+      const file = process.argv[3];
+      if (!file) {
+        console.error('Usage: neer-tools import <file.csv> [--dry-run]');
+        process.exitCode = 1;
+        return;
+      }
+      await runImport({
+        apiUrl: (process.env.API_URL ?? 'http://localhost:3000').replace(/[/]$/, ''),
+        file,
+        dryRun: process.argv.includes('--dry-run'),
+      });
+      break;
+    }
+    case 'live':
+      await commandLive();
+      break;
     case 'migrate':
       await commandMigrate();
       break;
@@ -173,11 +208,13 @@ async function main(): Promise<void> {
       break;
     default:
       console.error(
-        'Usage: neer-tools <migrate|seed|compute|export-demo|all>\n\n' +
+        'Usage: neer-tools <migrate|seed|compute|export-demo|live|import|all>\n\n' +
           '  migrate      apply the ClickHouse schema\n' +
           '  seed         load sites, fetch real weather, generate observations\n' +
           '  compute      score every site-day and derive One Health findings\n' +
           '  export-demo  dump rollups to static JSON for the public demo\n' +
+          '  live         run the simulated field crew, posting observations to the API\n' +
+          '  import       push a OneAquaHealth-format CSV through the API importer\n' +
           '  all          run the full pipeline in order',
       );
       process.exitCode = 1;

@@ -72,6 +72,27 @@ so status is never colour-only: every marker also carries its number, a face and
 
 ---
 
+## Live data — real, and updating in seconds
+
+| Layer                           | Source                                           | Real?                         | Cadence             |
+| ------------------------------- | ------------------------------------------------ | ----------------------------- | ------------------- |
+| Weather & hydrology, every site | Open-Meteo live service                          | **Real**                      | every 15 min        |
+| Sensor water quality            | Environment Agency sondes, discovered at runtime | **Real, official, unchecked** | polled every 10 min |
+| Coimbra citizen observations    | Simulated field crew over real weather           | **Simulated**                 | one every ~25 s     |
+| Batch upload                    | OneAquaHealth-format CSV                         | as uploaded                   | on demand           |
+
+A new observation is validated, stored, re-scored and pushed to every open dashboard over
+server-sent events — measured at **3.2 seconds** from `POST /api/observations` to the score
+changing on screen. Incremental and batch scoring are the same function, so a live number can
+never disagree with a batch one.
+
+There is no public real-time feed for the Coimbra streams themselves, so the real sensor layer
+comes from an official network that publishes one — six English rivers, including the River Lee
+in London — and every site carries a provenance chip saying which kind it is. Details, limits and
+the API call budget: [`docs/LIVE_DATA.md`](docs/LIVE_DATA.md).
+
+---
+
 ## Run it
 
 Requires Docker. **No accounts, no API keys, no cloud credentials.**
@@ -86,11 +107,16 @@ Then, in a second terminal, load the data:
 pnpm install && pnpm db:migrate && pnpm db:seed && pnpm --filter @neer/tools compute
 ```
 
-|              |                                 |
-| ------------ | ------------------------------- |
-| Dashboard    | http://localhost:5173           |
-| API          | http://localhost:3000/api/sites |
-| OpenAPI docs | http://localhost:3000/api/docs  |
+|                   |                                       |
+| ----------------- | ------------------------------------- |
+| Dashboard         | http://localhost:5173                 |
+| API               | http://localhost:3000/api/sites       |
+| OpenAPI docs      | http://localhost:3000/api/docs        |
+| Live events (SSE) | http://localhost:3000/api/events      |
+| Live status       | http://localhost:3000/api/live/status |
+
+`docker compose up` also starts the simulated field crew, so scores start moving within a minute.
+Set `LIVE_WEATHER=off LIVE_SENSORS=off` to run without internet access.
 
 For development against a hot-reloading frontend, run the database alone and the apps on the host:
 
@@ -105,7 +131,8 @@ docker compose up -d clickhouse && pnpm dev
 | Layer                | Source                                                                | Real?                                            |
 | -------------------- | --------------------------------------------------------------------- | ------------------------------------------------ |
 | Site geography       | Real watercourses near Coimbra, Portugal (a OneAquaHealth pilot city) | **Real**, approximate representative coordinates |
-| Weather & hydrology  | Open-Meteo ERA5 archive + GloFAS flood API — 57,312 hourly readings   | **Real measurements**                            |
+| Weather & hydrology  | Open-Meteo ERA5 archive for the seed, live service thereafter         | **Real measurements**                            |
+| Sensor water quality | Environment Agency Hydrology API, sub-daily sondes                    | **Real** — `source = sensor`                     |
 | Citizen observations | Documented physical simulator (`tools/src/simulate.ts`)               | **Simulated — clearly labelled**                 |
 
 **No real person recorded these observations, and nothing here describes the measured condition of
@@ -118,6 +145,7 @@ the patterns the author expected to find — which proves nothing. Driving a doc
 with _real_ weather forces the pipeline to find signal it was not handed directly.
 
 See [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md).
+| [`docs/LIVE_DATA.md`](docs/LIVE_DATA.md) | The live loop, sensor discovery, weather refresh, CSV import |
 
 ---
 
@@ -254,6 +282,9 @@ band ±9). The band visibly breathes with the evidence.
   per site from RIVPACS/RICT. Neer does not implement that.
 - **River discharge is catchment-scale.** GloFAS at ~5 km cannot represent an individual urban
   stream, so it is used as a hydrological covariate and never as a reach discharge value.
+- **Sensor sites lack catchment attributes.** The EA API does not publish combined-sewer, outfall
+  or public-access data, so the exposure rules stay quiet on those sites rather than guessing.
+- **EA readings are unchecked.** They are what the instrument said, before the agency's review.
 - **Open-Meteo's free tier is non-commercial.** Fine for a hackathon, academic or non-profit use;
   a commercial deployment needs the paid tier.
 
@@ -288,4 +319,5 @@ set, and the methodology says so.
 
 ---
 
-MIT licensed.
+MIT licensed. Contains Environment Agency information © Environment Agency and database right
+(Open Government Licence v3). Weather by Open-Meteo (CC-BY 4.0). Map data © OpenStreetMap contributors.

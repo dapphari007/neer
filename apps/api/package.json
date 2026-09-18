@@ -19,6 +19,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^8.1.0",
     "@neer/insights": "workspace:*",
+    "@neer/pipeline": "workspace:*",
     "@neer/scoring": "workspace:*",
     "@neer/shared": "workspace:*",
     "reflect-metadata": "^0.2.2",

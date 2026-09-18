@@ -12,7 +12,7 @@ import { Mascot } from '../components/Mascot';
 import { ShareModal } from '../components/ShareModal';
 import { TrendChart } from '../components/TrendChart';
 import { Stars } from './Explorer';
-import { num } from '../lib/format';
+import { num, sourceLabel } from '../lib/format';
 
 /**
  * One stream's story, told for a child.
@@ -114,7 +114,11 @@ export function StreamStory({ site, measurements, disclosure, game, onBack, onSe
         </div>
         <div>
           <p className="compare-title" style={{ marginTop: 0 }}>
-            {site.catchment} · Coimbra
+            {site.catchment} · {site.region ?? 'Coimbra'}{' '}
+            <span className={`prov ${sourceLabel(site.source).cls}`} style={{ marginLeft: 6 }}>
+              {sourceLabel(site.source).cls === 'sensor' ? '📡' : '🧪'}{' '}
+              {sourceLabel(site.source).text}
+            </span>
           </p>
           <h1 style={{ fontSize: 'clamp(30px, 4.4vw, 50px)' }}>{river}</h1>
           {reach && (

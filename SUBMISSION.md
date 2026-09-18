@@ -13,12 +13,13 @@ One Health insights"_ against the problem that _"stream data is hard to interpre
 clearly show patterns, risks, or health impact."_ It asks for dashboards, maps, trend analysis, and
 One Health insight summaries.
 
-| Track asks for               | Neer delivers                                                                                                                                                                                                                 |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dashboards                   | Overview with ranked sites, stat tiles and priority findings; site detail with score decomposition and confidence breakdown                                                                                                   |
-| Maps                         | MapLibre map of twelve Coimbra sites, coloured in the WFD statutory colour code (validated for colour-blind separation), glowing waterways, a sticker-marking game layer, with a graceful fallback when tiles are unreachable |
-| Trend analysis               | Daily index series with credible-interval ribbon, 7-day trailing mean, raw values retained, and rainfall on a shared time axis                                                                                                |
-| One Health insight summaries | Nine deterministic rules producing evidence-bearing findings, each rendered for citizen, municipality and public health officer                                                                                               |
+| Track asks for               | Neer delivers                                                                                                                                                                                                                                                   |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Real-time interpretation     | Live pipeline: observation → ClickHouse → re-score → server-sent event → dashboard in ~3 s; real live weather on every site; six real Environment Agency sensor stations discovered and ingested at runtime; batch import in OneAquaHealth's own CSV vocabulary |
+| Dashboards                   | Overview with ranked sites, stat tiles and priority findings; site detail with score decomposition and confidence breakdown                                                                                                                                     |
+| Maps                         | MapLibre map of twelve Coimbra sites, coloured in the WFD statutory colour code (validated for colour-blind separation), glowing waterways, a sticker-marking game layer, with a graceful fallback when tiles are unreachable                                   |
+| Trend analysis               | Daily index series with credible-interval ribbon, 7-day trailing mean, raw values retained, and rainfall on a shared time axis                                                                                                                                  |
+| One Health insight summaries | Nine deterministic rules producing evidence-bearing findings, each rendered for citizen, municipality and public health officer                                                                                                                                 |
 
 ---
 

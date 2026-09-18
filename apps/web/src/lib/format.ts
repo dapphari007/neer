@@ -77,3 +77,11 @@ export const longDate = (iso: string): string =>
     year: 'numeric',
     timeZone: 'UTC',
   });
+
+/** Provenance chip text. Never blank: an unlabelled site would read as real. */
+export const sourceLabel = (source: string | undefined): { cls: string; text: string } =>
+  source === 'sensor'
+    ? { cls: 'sensor', text: 'Real sensor' }
+    : source === 'citizen'
+      ? { cls: 'sensor', text: 'Real citizen data' }
+      : { cls: 'simulated', text: 'Simulated' };

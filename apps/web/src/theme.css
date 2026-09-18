@@ -1690,3 +1690,123 @@ details summary {
     display: none;
   }
 }
+
+/* ─── live indicator ───────────────────────────────────────────────────────── */
+
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px 5px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: rgba(3, 26, 54, 0.6);
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.live-pill .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex: none;
+}
+
+.live-pill.on .dot {
+  background: var(--kelp);
+  box-shadow: 0 0 0 0 rgba(63, 207, 142, 0.6);
+  animation: livedot 2s ease-out infinite;
+}
+
+.live-pill.off .dot {
+  background: var(--sun);
+}
+
+.live-pill .live-what {
+  color: var(--text-muted);
+  font-weight: 700;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes livedot {
+  0% {
+    box-shadow: 0 0 0 0 rgba(63, 207, 142, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 0 9px rgba(63, 207, 142, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-pill.on .dot {
+    animation: none;
+  }
+}
+
+/* ─── provenance chip: real sensor vs simulated ───────────────────────────── */
+
+.prov {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.prov.sensor {
+  background: rgba(63, 207, 142, 0.16);
+  color: #9af0c8;
+  border: 1px solid rgba(63, 207, 142, 0.45);
+}
+
+.prov.simulated {
+  background: rgba(255, 209, 102, 0.12);
+  color: #ffe3a0;
+  border: 1px solid rgba(255, 209, 102, 0.35);
+}
+
+/* ─── region tabs above the map ───────────────────────────────────────────── */
+
+.region-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.region-tabs button {
+  border: 1px solid var(--border-strong);
+  background: rgba(3, 26, 54, 0.5);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-secondary);
+}
+
+.region-tabs button[aria-pressed='true'] {
+  background: var(--glow);
+  color: #03253f;
+  border-color: var(--glow);
+}
+
+/* Sensor sites get a square-cornered pin so the shape says "instrument", not
+   only the chip. */
+.site-pin.sensor {
+  border-radius: 8px 8px 8px 2px;
+}
+
+@media (max-width: 900px) {
+  .live-pill .live-what {
+    display: none;
+  }
+}

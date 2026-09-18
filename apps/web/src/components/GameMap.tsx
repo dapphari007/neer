@@ -4,7 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import type { SiteSummary } from '../lib/api';
 import { STICKERS, XP, type Game, type Sticker } from '../lib/game';
 import { kidStatus } from '../lib/kid';
-import { num, statusColor, statusLabel, STATUS_ORDER } from '../lib/format';
+import { num, sourceLabel, statusColor, statusLabel, STATUS_ORDER } from '../lib/format';
 
 /**
  * The map — a game board in Explorer mode, a plain site map in Scientist mode.
@@ -72,6 +72,11 @@ export function GameMap({ sites, selectedId = null, onSelect, game, compact = fa
   const [sticker, setSticker] = useState<Sticker | null>(null);
   const [toast, setToast] = useState<{ key: number; text: string } | null>(null);
 
+  // One viewport per region: a pilot city and a sensor network two thousand
+  // kilometres away cannot share a useful zoom level.
+  const regions = [...new Set(sites.map((s) => s.region ?? 'Coimbra'))];
+  const [region, setRegion] = useState<string>(regions[0] ?? 'Coimbra');
+
   // The map is created once; handlers read the latest values through refs
   // instead of tearing the whole map down whenever a prop changes.
   const stickerRef = useRef(sticker);
@@ -85,8 +90,11 @@ export function GameMap({ sites, selectedId = null, onSelect, game, compact = fa
   useEffect(() => {
     if (!containerRef.current || mapRef.current || sites.length === 0) return;
 
+    const firstRegion = sites[0]?.region ?? 'Coimbra';
     const bounds = new maplibregl.LngLatBounds();
-    sites.forEach((site) => bounds.extend([site.lon, site.lat]));
+    sites
+      .filter((site) => (site.region ?? 'Coimbra') === firstRegion)
+      .forEach((site) => bounds.extend([site.lon, site.lat]));
 
     const map = new maplibregl.Map({
       container: containerRef.current,
@@ -122,7 +130,7 @@ export function GameMap({ sites, selectedId = null, onSelect, game, compact = fa
       const root = document.createElement('div');
       const pin = document.createElement('button');
       pin.type = 'button';
-      pin.className = 'site-pin';
+      pin.className = site.source === 'sensor' ? 'site-pin sensor' : 'site-pin';
       pin.style.background = statusColor(site.status);
       pin.setAttribute(
         'aria-label',
@@ -147,7 +155,12 @@ export function GameMap({ sites, selectedId = null, onSelect, game, compact = fa
       const mood = document.createElement('div');
       mood.style.cssText = 'margin-top:3px;font-size:13px;font-weight:700;color:#2a5878';
       mood.textContent = `${num(site.sohi, 0)}/100 · ${kidStatus(site.status).label} — tap to visit`;
-      card.append(name, mood);
+      const prov = document.createElement('div');
+      const provenance = sourceLabel(site.source);
+      prov.style.cssText = `margin-top:5px;font-size:11px;font-weight:800;color:${provenance.cls === 'sensor' ? '#0f7a4a' : '#8a6100'}`;
+      prov.textContent =
+        provenance.cls === 'sensor' ? '📡 Real sensor — live readings' : '🧪 Simulated check-ups';
+      card.append(name, mood, prov);
 
       pin.addEventListener('mouseenter', () =>
         hover.setLngLat([site.lon, site.lat]).setDOMContent(card).addTo(map),
@@ -173,6 +186,21 @@ export function GameMap({ sites, selectedId = null, onSelect, game, compact = fa
       mapRef.current = null;
     };
   }, [sites]);
+
+  // ─── Fit the viewport to the chosen region ─────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const inRegion = sites.filter((s) => (s.region ?? 'Coimbra') === region);
+    if (inRegion.length === 0) return;
+    const bounds = new maplibregl.LngLatBounds();
+    inRegion.forEach((s) => bounds.extend([s.lon, s.lat]));
+    map.fitBounds(bounds, {
+      padding: { top: 90, bottom: 110, left: 60, right: 60 },
+      maxZoom: 13,
+      duration: 900,
+    });
+  }, [region, sites]);
 
   // ─── Reflect selection ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -239,82 +267,101 @@ export function GameMap({ sites, selectedId = null, onSelect, game, compact = fa
   const level = game?.level;
 
   return (
-    <div className={`map-frame${compact ? ' compact' : ''}${sticker ? ' marking' : ''}`}>
-      <div ref={containerRef} className="map-canvas" />
-
-      {toast && (
-        <div key={toast.key} className="toast" role="status">
-          {toast.text}
+    <>
+      {regions.length > 1 && (
+        <div className="region-tabs" role="group" aria-label="Choose a region">
+          {regions.map((r) => {
+            const count = sites.filter((s) => (s.region ?? 'Coimbra') === r).length;
+            return (
+              <button
+                key={r}
+                type="button"
+                aria-pressed={region === r}
+                onClick={() => setRegion(r)}
+              >
+                {r} · {count}
+              </button>
+            );
+          })}
         </div>
       )}
+      <div className={`map-frame${compact ? ' compact' : ''}${sticker ? ' marking' : ''}`}>
+        <div ref={containerRef} className="map-canvas" />
 
-      {game && level && (
-        <div className="hud hud-top">
-          <div className="hud-level">
-            <span>
-              Lv {level.number} · {level.name}
-            </span>
-            <small className="tnum">{game.xp} XP</small>
+        {toast && (
+          <div key={toast.key} className="toast" role="status">
+            {toast.text}
           </div>
-          <div
-            className="xp-track"
-            role="progressbar"
-            aria-label="Progress to next level"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={Math.round(level.progress * 100)}
-          >
-            <div className="xp-fill" style={{ width: `${Math.max(4, level.progress * 100)}%` }} />
-          </div>
-          <div
-            style={{ marginTop: 5, fontSize: 11.5, color: 'var(--text-muted)', fontWeight: 700 }}
-          >
-            {level.nextName ? `${level.toNext} XP to ${level.nextName}` : 'Top rank reached!'}
-          </div>
-        </div>
-      )}
+        )}
 
-      <div className="hud legend-hud">
-        {[...STATUS_ORDER].reverse().map((status) => (
-          <div className="legend-row" key={status}>
-            <i className="swatch" style={{ background: `var(--status-${status})` }} />
-            {game ? kidStatus(status).label : statusLabel(status)}
-          </div>
-        ))}
-        <div className="legend-row" style={{ marginTop: 3 }}>
-          <i
-            className="swatch"
-            style={{ background: 'none', border: '2.5px solid var(--coral)' }}
-          />
-          {game ? 'Pulsing = needs help' : 'Pulsing = below Good'}
-        </div>
-      </div>
-
-      {game && (
-        <div className="hud hud-bottom" role="toolbar" aria-label="Mark something you spotted">
-          <span className="hud-hint">
-            {sticker
-              ? `Tap the map to drop “${sticker.label}”`
-              : 'Spotted something? Pick a sticker:'}
-          </span>
-          {STICKERS.map((option) => (
-            <button
-              key={option.kind}
-              type="button"
-              className="sticker-btn"
-              aria-pressed={sticker?.kind === option.kind}
-              onClick={() =>
-                setSticker((current) => (current?.kind === option.kind ? null : option))
-              }
-            >
-              <span className="emoji" aria-hidden="true">
-                {option.emoji}
+        {game && level && (
+          <div className="hud hud-top">
+            <div className="hud-level">
+              <span>
+                Lv {level.number} · {level.name}
               </span>
-              {option.label}
-            </button>
+              <small className="tnum">{game.xp} XP</small>
+            </div>
+            <div
+              className="xp-track"
+              role="progressbar"
+              aria-label="Progress to next level"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(level.progress * 100)}
+            >
+              <div className="xp-fill" style={{ width: `${Math.max(4, level.progress * 100)}%` }} />
+            </div>
+            <div
+              style={{ marginTop: 5, fontSize: 11.5, color: 'var(--text-muted)', fontWeight: 700 }}
+            >
+              {level.nextName ? `${level.toNext} XP to ${level.nextName}` : 'Top rank reached!'}
+            </div>
+          </div>
+        )}
+
+        <div className="hud legend-hud">
+          {[...STATUS_ORDER].reverse().map((status) => (
+            <div className="legend-row" key={status}>
+              <i className="swatch" style={{ background: `var(--status-${status})` }} />
+              {game ? kidStatus(status).label : statusLabel(status)}
+            </div>
           ))}
+          <div className="legend-row" style={{ marginTop: 3 }}>
+            <i
+              className="swatch"
+              style={{ background: 'none', border: '2.5px solid var(--coral)' }}
+            />
+            {game ? 'Pulsing = needs help' : 'Pulsing = below Good'}
+          </div>
         </div>
-      )}
-    </div>
+
+        {game && (
+          <div className="hud hud-bottom" role="toolbar" aria-label="Mark something you spotted">
+            <span className="hud-hint">
+              {sticker
+                ? `Tap the map to drop “${sticker.label}”`
+                : 'Spotted something? Pick a sticker:'}
+            </span>
+            {STICKERS.map((option) => (
+              <button
+                key={option.kind}
+                type="button"
+                className="sticker-btn"
+                aria-pressed={sticker?.kind === option.kind}
+                onClick={() =>
+                  setSticker((current) => (current?.kind === option.kind ? null : option))
+                }
+              >
+                <span className="emoji" aria-hidden="true">
+                  {option.emoji}
+                </span>
+                {option.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 }

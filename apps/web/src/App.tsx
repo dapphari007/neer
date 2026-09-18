@@ -1,14 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   adapter,
   type DataDisclosure,
   type Finding,
+  type LiveEvent,
   type Measurements,
   type SiteSummary,
 } from './lib/api';
 import { useGame } from './lib/game';
 import { OceanBackdrop, Seafloor } from './components/OceanBackdrop';
 import { Mascot } from './components/Mascot';
+import { LivePill } from './components/LivePill';
 import { Explorer } from './views/Explorer';
 import { StreamStory } from './views/StreamStory';
 import { Overview } from './views/Overview';
@@ -16,16 +18,16 @@ import { SiteDetail } from './views/SiteDetail';
 import { Method } from './views/Method';
 
 /**
- * Shell, modes and routing.
+ * Shell, modes, routing — and the live loop.
  *
  * Two front doors onto one dataset. Explorer mode is for children, families and
- * classrooms: faces, stars, real-life comparisons, a map to mark. Scientist mode
- * is the analytical dashboard: credible intervals, score decomposition, evidence
- * and citations. Switching modes keeps you on the same stream, because they are
- * the same stream — told differently, never scored differently.
+ * classrooms; Scientist mode is the analytical dashboard. Switching keeps you
+ * on the same stream, because it is the same stream — told differently, never
+ * scored differently.
  *
- * Routing is a piece of state rather than a router library; there are five
- * screens and no deep links to honour yet.
+ * Live updates: the adapter streams change events and the app refetches the
+ * endpoints it already trusts. Events say WHAT changed, so the page can name it
+ * ("River Lee re-scored") instead of flashing for no stated reason.
  */
 
 type Mode = 'explorer' | 'scientist';
@@ -39,24 +41,69 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>('explorer');
   const [route, setRoute] = useState<Route>({ view: 'home' });
+  const [connected, setConnected] = useState(false);
+  const [lastEventAt, setLastEventAt] = useState<number | null>(null);
+  const [lastEventLabel, setLastEventLabel] = useState<string | null>(null);
+  /** Bumps whenever data changed, so open detail views refetch their own slices. */
+  const [dataVersion, setDataVersion] = useState(0);
   const game = useGame();
+  const sitesRef = useRef<SiteSummary[] | null>(null);
+  sitesRef.current = sites;
 
-  useEffect(() => {
-    Promise.all([
+  const load = useCallback(async () => {
+    const [loadedSites, loadedFindings, loadedMeasurements] = await Promise.all([
       adapter.getSites(),
       adapter.getFindings(),
-      adapter.getDisclosure(),
       // Comparisons are an enhancement; losing them must not take the app down.
       adapter.getMeasurements().catch(() => [] as Measurements[]),
-    ])
-      .then(([loadedSites, loadedFindings, loadedDisclosure, loadedMeasurements]) => {
-        setSites(loadedSites);
-        setFindings(loadedFindings);
-        setDisclosure(loadedDisclosure);
-        setMeasurements(loadedMeasurements);
-      })
-      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)));
+    ]);
+    setSites(loadedSites);
+    setFindings(loadedFindings);
+    setMeasurements(loadedMeasurements);
   }, []);
+
+  useEffect(() => {
+    Promise.all([load(), adapter.getDisclosure()])
+      .then(([, loadedDisclosure]) => setDisclosure(loadedDisclosure))
+      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : String(cause)));
+  }, [load]);
+
+  // ─── Live events ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    const describe = (event: LiveEvent): string | null => {
+      const names = (ids: string[]) =>
+        ids
+          .map((id) => sitesRef.current?.find((s) => s.siteId === id)?.name.split(' — ')[0] ?? id)
+          .slice(0, 2)
+          .join(', ') + (ids.length > 2 ? ` +${ids.length - 2}` : '');
+      switch (event.type) {
+        case 'scores':
+          return `re-scored ${names(event.siteIds)}`;
+        case 'observations':
+          return `${event.count} new observation${event.count === 1 ? '' : 's'} at ${names(event.siteIds)}`;
+        case 'sensors':
+          return `${event.rows} sensor readings from ${event.sites} station${event.sites === 1 ? '' : 's'}`;
+        case 'weather':
+          return `weather refreshed for ${event.sites} sites`;
+        default:
+          return null;
+      }
+    };
+
+    return adapter.subscribe((event) => {
+      if (event.type === 'heartbeat') return;
+      setLastEventAt(Date.now());
+      setLastEventLabel(describe(event));
+      // Scores are what the page shows; observations and readings only
+      // matter once they have been scored, and that event follows within
+      // seconds. Refetching on every event would just double the traffic.
+      if (event.type === 'scores' || event.type === 'weather') {
+        load()
+          .then(() => setDataVersion((v) => v + 1))
+          .catch(() => {});
+      }
+    }, setConnected);
+  }, [load]);
 
   const selectedSite = useMemo(
     () => (route.view === 'site' ? (sites?.find((s) => s.siteId === route.siteId) ?? null) : null),
@@ -67,7 +114,8 @@ export function App() {
     window.scrollTo({ top: 0 });
   }, [route, mode]);
 
-  const simulated = disclosure?.observations !== 'real';
+  const anySimulated = sites?.some((s) => (s.source ?? 'simulated') === 'simulated') ?? true;
+  const anySensor = sites?.some((s) => s.source === 'sensor') ?? false;
   const openSite = (siteId: string) => setRoute({ view: 'site', siteId });
 
   return (
@@ -91,6 +139,13 @@ export function App() {
                 <span className="wordmark-tag">Healthy streams, healthy us</span>
               </span>
             </button>
+
+            <LivePill
+              connected={connected}
+              lastEventAt={lastEventAt}
+              lastEventLabel={lastEventLabel}
+              isStatic={adapter.kind === 'static'}
+            />
 
             <div className="mode-switch" role="group" aria-label="Choose how to explore">
               <button
@@ -129,15 +184,41 @@ export function App() {
 
         <main className="shell">
           {/* Not dismissible, and above the data: nobody reaches a score without
-              first passing the statement of what is measured and what is modelled. */}
-          {disclosure && simulated && (
+              first passing the statement of what is measured and what is modelled.
+              Now per source, because the network mixes real sensors with the
+              simulated pilot. */}
+          {disclosure && anySimulated && (
             <div className="provenance" role="note">
               <span aria-hidden="true">🧪</span>
               <span>
-                <strong>This is a demo.</strong>{' '}
-                {mode === 'explorer'
-                  ? 'The weather here is real, but the stream check-ups are pretend ones made by a computer, so we can show how Neer works. They do not tell you how these real streams are doing.'
-                  : 'Weather and hydrology are real measurements from Open-Meteo. Citizen observations are simulated by a documented physical model — no real person recorded them, and nothing here describes the measured condition of any real stream.'}{' '}
+                <strong>Two kinds of stream on this map.</strong>{' '}
+                {mode === 'explorer' ? (
+                  <>
+                    The Coimbra streams have <strong>pretend check-ups</strong> made by a computer
+                    (with real weather), so we can show how Neer works.
+                    {anySensor && (
+                      <>
+                        {' '}
+                        The streams marked <strong>Real sensor</strong> are measured by real
+                        instruments in English rivers, updating every few minutes.
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    Coimbra sites carry <strong>simulated</strong> observations from a documented
+                    physical model over real Open-Meteo weather; nothing there describes a real
+                    stream.
+                    {anySensor && (
+                      <>
+                        {' '}
+                        Sites marked <strong>Real sensor</strong> are Environment Agency
+                        water-quality sondes, ingested live and unchecked by the EA's own quality
+                        review.
+                      </>
+                    )}
+                  </>
+                )}{' '}
                 <button
                   type="button"
                   className="link-button"
@@ -168,9 +249,10 @@ export function App() {
 
           {selectedSite && mode === 'explorer' && (
             <StreamStory
+              key={`${selectedSite.siteId}-${dataVersion}`}
               site={selectedSite}
               measurements={measurements.find((m) => m.siteId === selectedSite.siteId)}
-              disclosure={simulated ? 'simulated' : 'real'}
+              disclosure={selectedSite.source === 'sensor' ? 'real' : 'simulated'}
               game={game}
               onBack={() => setRoute({ view: 'home' })}
               onSeeScience={() => setMode('scientist')}
@@ -178,7 +260,11 @@ export function App() {
           )}
 
           {selectedSite && mode === 'scientist' && (
-            <SiteDetail site={selectedSite} onBack={() => setRoute({ view: 'home' })} />
+            <SiteDetail
+              key={`${selectedSite.siteId}-${dataVersion}`}
+              site={selectedSite}
+              onBack={() => setRoute({ view: 'home' })}
+            />
           )}
         </main>
 

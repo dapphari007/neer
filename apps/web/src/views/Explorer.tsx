@@ -4,7 +4,7 @@ import type { Game } from '../lib/game';
 import { kidStatus } from '../lib/kid';
 import { GameMap } from '../components/GameMap';
 import { Mascot } from '../components/Mascot';
-import { num } from '../lib/format';
+import { num, sourceLabel } from '../lib/format';
 
 /**
  * Explorer home — the way in for children, families and classrooms.
@@ -96,7 +96,7 @@ export function Explorer({ sites, game, onSelectSite }: Props) {
         <div className="hero-art">
           <Mascot status={needHelp > 0 ? 'moderate' : 'high'} size={170} float />
           <div className="speech">
-            Hi, I'm Drip! {sites.length} streams live around here.{' '}
+            Hi, I'm Drip! {sites.length} streams are on the map.{' '}
             {needHelp > 0
               ? `${needHelp} of them ${needHelp === 1 ? 'is' : 'are'} not feeling great — can you find ${needHelp === 1 ? 'it' : 'them'}?`
               : 'They are all feeling good today!'}
@@ -201,9 +201,15 @@ export function Explorer({ sites, game, onSelectSite }: Props) {
                     </span>
                   </span>
                 </span>
-                {site.sohi !== null && site.sohi < 60 && (
-                  <span className="help-flag">Needs help!</span>
-                )}
+                <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span className={`prov ${sourceLabel(site.source).cls}`}>
+                    {sourceLabel(site.source).cls === 'sensor' ? '📡' : '🧪'}{' '}
+                    {sourceLabel(site.source).text}
+                  </span>
+                  {site.sohi !== null && site.sohi < 60 && (
+                    <span className="help-flag">Needs help!</span>
+                  )}
+                </span>
                 {game.visited.includes(site.siteId) && (
                   <span className="muted" style={{ fontSize: 12, fontWeight: 800 }}>
                     ✓ You have visited

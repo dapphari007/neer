@@ -27,6 +27,11 @@ export interface SiteSummary {
   lon: number;
   urbanClass: string;
   recreationalAccess: boolean | number;
+  /** What produces this site's observations: 'simulated' | 'sensor' | 'citizen'. */
+  source?: string;
+  /** Map grouping — one viewport per region. */
+  region?: string;
+  provider?: string;
   sohi: number | null;
   status: string | null;
   confidence: number | null;
@@ -102,8 +107,37 @@ export interface DataDisclosure {
   note: string;
 }
 
+export type LiveEvent =
+  | { type: 'scores'; siteIds: string[]; at: string }
+  | { type: 'weather'; sites: number; at: string }
+  | { type: 'sensors'; sites: number; rows: number; at: string }
+  | { type: 'observations'; siteIds: string[]; count: number; at: string }
+  | { type: 'heartbeat'; at: string };
+
+export interface LiveStatus {
+  sources: Array<{ source: string; lastRun: string; rows: number; ok: boolean; detail: string }>;
+  stations: Array<{
+    id: string;
+    siteId: string;
+    name: string;
+    river: string;
+    parameters: string[];
+  }>;
+  liveWeather: boolean;
+  liveSensors: boolean;
+}
+
 export interface DataAdapter {
   readonly kind: 'live' | 'static';
+  /**
+   * Subscribe to change events. Returns an unsubscribe. The static adapter has
+   * nothing to say and returns a no-op — a static export does not change.
+   */
+  subscribe(
+    onEvent: (event: LiveEvent) => void,
+    onState?: (connected: boolean) => void,
+  ): () => void;
+  getLiveStatus(): Promise<LiveStatus | null>;
   getSites(): Promise<SiteSummary[]>;
   getTrend(siteId: string): Promise<TrendPoint[]>;
   getFindings(siteId?: string): Promise<Finding[]>;
@@ -157,6 +191,38 @@ class HttpAdapter implements DataAdapter {
 
   async getMeasurements(): Promise<Measurements[]> {
     return (await this.get<Measurements[]>('/api/measurements')).data;
+  }
+
+  async getLiveStatus(): Promise<LiveStatus | null> {
+    try {
+      return (await this.get<LiveStatus>('/api/live/status')).data;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Server-sent events. EventSource reconnects on its own after a drop, so the
+   * only state worth surfacing is whether the stream is currently open.
+   */
+  subscribe(
+    onEvent: (event: LiveEvent) => void,
+    onState?: (connected: boolean) => void,
+  ): () => void {
+    const source = new EventSource(`${this.baseUrl}/api/events`);
+    const handle = (raw: MessageEvent) => {
+      try {
+        onEvent(JSON.parse(raw.data) as LiveEvent);
+      } catch {
+        // A malformed event is ignored; the next one will be fine.
+      }
+    };
+    for (const type of ['scores', 'weather', 'sensors', 'observations', 'heartbeat']) {
+      source.addEventListener(type, handle as EventListener);
+    }
+    source.onopen = () => onState?.(true);
+    source.onerror = () => onState?.(false);
+    return () => source.close();
   }
 
   async getDisclosure(): Promise<DataDisclosure> {
@@ -213,6 +279,14 @@ class StaticAdapter implements DataAdapter {
 
   async getMeasurements(): Promise<Measurements[]> {
     return this.load<Measurements[]>('measurements.json');
+  }
+
+  async getLiveStatus(): Promise<LiveStatus | null> {
+    return null;
+  }
+
+  subscribe(): () => void {
+    return () => {};
   }
 
   async getDisclosure(): Promise<DataDisclosure> {

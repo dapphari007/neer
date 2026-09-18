@@ -14,6 +14,15 @@ Observations ───────┘      hot path        read-only        map 
 
 ---
 
+## The live loop
+
+Observations enter through `POST /api/observations` (or the CSV importer, or the sensor poller),
+land in ClickHouse, and the affected sites are re-scored by the same `scoreSites` function the
+batch tool uses — debounced two seconds so a burst becomes one run, serialised so two runs never
+race on the result tables. An event goes out over server-sent events; dashboards refetch. Result
+tables are ReplacingMergeTree and every reader uses `FINAL`, so an incremental rewrite is visible
+before the merge. Full detail: `LIVE_DATA.md`.
+
 ## The organising principle
 
 **The database aggregates. TypeScript does science. Neither does the other's job.**

@@ -1,13 +1,22 @@
 import 'reflect-metadata';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/http-exception.filter';
 
 async function bootstrap(): Promise<void> {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule, { bufferLogs: false });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: false });
+
+  // The CSV importer takes the file as the request body. Nest's default parsers
+  // handle JSON and form bodies only; text/csv needs its own, with a ceiling so
+  // an accidental multi-gigabyte upload cannot exhaust the process. Registered
+  // through Nest rather than by importing express directly: express is a
+  // transitive dependency here, and pnpm's strict layout will not resolve it
+  // from this package at runtime even though its types are visible at build.
+  app.useBodyParser('text', { type: ['text/csv', 'text/plain'], limit: '10mb' });
 
   app.useGlobalFilters(new AllExceptionsFilter());
 
@@ -27,7 +36,7 @@ async function bootstrap(): Promise<void> {
 
   app.enableCors({
     origin: corsOrigins,
-    methods: ['GET', 'OPTIONS'],
+    methods: ['GET', 'POST', 'OPTIONS'],
     credentials: false,
   });
 
@@ -41,7 +50,7 @@ async function bootstrap(): Promise<void> {
   const config = new DocumentBuilder()
     .setTitle('Neer API')
     .setDescription(
-      'Stream One Health Index for urban freshwater. Read-only.\n\n' +
+      'Stream One Health Index for urban freshwater. Reads everything; accepts observations at POST /api/observations; streams changes at GET /api/events.\n\n' +
         'Every response carries a `meta.dataDisclosure` block stating which parts of the ' +
         'payload are real measurements and which are modelled. Citizen observations in this ' +
         'deployment are simulated; weather and hydrology are real.',

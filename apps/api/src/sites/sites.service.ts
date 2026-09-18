@@ -32,6 +32,9 @@ export class SitesService {
           h.lon                                  AS lon,
           toString(h.urban_class)                AS urbanClass,
           h.recreational_access = 1              AS recreationalAccess,
+          toString(h.source)                     AS source,
+          h.region                               AS region,
+          h.provider                             AS provider,
           round(h.sohi, 1)                       AS sohi,
           toString(h.status)                     AS status,
           round(h.confidence, 3)                 AS confidence,
@@ -80,8 +83,12 @@ export class SitesService {
           s.nearest_contact_m              AS nearestContactM,
           s.population_within_1km          AS populationWithin1km,
           s.reference_do_mgl               AS referenceDoMgl,
-          s.reference_cond_uscm            AS referenceCondUscm
-      FROM sites AS s
+          s.reference_cond_uscm            AS referenceCondUscm,
+          toString(s.source)               AS source,
+          s.region                         AS region,
+          s.provider                       AS provider,
+          s.provider_ref                   AS providerRef
+      FROM sites AS s FINAL
       WHERE s.site_id = {siteId:String}
       LIMIT 1`,
       { siteId },
@@ -113,7 +120,7 @@ export class SitesService {
           days_since_last_obs              AS daysSinceLastObs,
           drivers                          AS drivers,
           method_version                   AS methodVersion
-      FROM site_health_daily
+      FROM site_health_daily FINAL
       WHERE site_id = {siteId:String}
       ORDER BY day DESC
       LIMIT 1`,
@@ -147,8 +154,8 @@ export class SitesService {
           round(e.temp_mean_c, 1)          AS tempMeanC,
           round(e.precip_mm, 1)            AS precipMm,
           round(e.discharge_mean_m3s, 2)   AS dischargeM3s
-      FROM site_health_daily AS h
-      LEFT JOIN site_env_daily AS e
+      FROM site_health_daily AS h FINAL
+      LEFT JOIN (SELECT * FROM site_env_daily FINAL) AS e
              ON e.site_id = h.site_id AND e.day = h.day
       WHERE h.site_id = {siteId:String}
         AND h.day >= {from:Date}
@@ -227,7 +234,7 @@ export class SitesService {
   /** Most recent date for which any index value exists, for the `asOf` field. */
   async getAsOf(): Promise<string | null> {
     const [row] = await this.clickhouse.query<{ asOf: string }>(
-      'SELECT toString(max(day)) AS asOf FROM site_health_daily',
+      'SELECT toString(max(day)) AS asOf FROM site_health_daily FINAL',
     );
     return row?.asOf ?? null;
   }

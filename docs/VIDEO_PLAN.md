@@ -198,7 +198,8 @@ BigQuery node stays dim and dashed, labelled _dormant_.
 > observation to the weather at the moment it was taken — so "oxygen crashed" becomes "oxygen
 > crashed forty-eight hours after forty millimetres of rain on a combined sewer". A pure
 > TypeScript scorer reads the rollups, computes the index, runs nine deterministic One Health
-> rules, and writes back. A NestJS API serves it. The BigQuery ML tier is real code, switched off,
+> rules, and writes back. A NestJS API serves it — and it moves: a new reading, from a phone or from one of the six real
+> Environment Agency sondes we follow, is scored and on every screen within three seconds. The BigQuery ML tier is real code, switched off,
 > so this runs for anyone with no cloud account.
 
 **Data.** Counts (57,312 readings; 1,515 observations; 62 findings) interpolated from the export

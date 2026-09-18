@@ -14,6 +14,7 @@ so a consumer cannot obtain the data without also obtaining the statement of wha
 | Weather              | Open-Meteo historical archive (ERA5-backed) | **Real measurements**              | CC-BY 4.0, non-commercial tier |
 | River discharge      | Open-Meteo flood API (GloFAS v4)            | **Real**, catchment-scale only     | CC-BY 4.0, non-commercial tier |
 | Citizen observations | `tools/src/simulate.ts`                     | **Simulated**                      | —                              |
+| Sensor water quality | Environment Agency Hydrology API            | **Real** (see `LIVE_DATA.md`)      | OGL v3                         |
 | Index thresholds     | Published standards, tagged individually    | Mixed — see `INDEX_METHODOLOGY.md` | Per source                     |
 
 ---

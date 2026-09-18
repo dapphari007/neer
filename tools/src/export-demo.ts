@@ -51,6 +51,9 @@ const EXPORTS: readonly ExportSpec[] = [
           s.population_within_1km          AS populationWithin1km,
           s.stream_order                   AS streamOrder,
           s.upstream_area_km2              AS upstreamAreaKm2,
+          toString(s.source)               AS source,
+          s.region                         AS region,
+          s.provider                       AS provider,
           h.sohi                           AS sohi,
           toString(h.status)               AS status,
           h.confidence                     AS confidence,
@@ -61,8 +64,8 @@ const EXPORTS: readonly ExportSpec[] = [
           h.exposure_score                 AS exposureScore,
           h.days_since_last_obs            AS daysSinceLastObs,
           toString(h.as_of)                AS asOf
-      FROM sites AS s
-      LEFT JOIN site_health_current AS h ON h.site_id = s.site_id
+      FROM sites AS s FINAL
+      LEFT JOIN (SELECT * FROM site_health_current FINAL) AS h ON h.site_id = s.site_id
       ORDER BY s.site_id`,
   },
   {
@@ -83,8 +86,8 @@ const EXPORTS: readonly ExportSpec[] = [
           round(e.temp_mean_c, 1)          AS tempMeanC,
           round(e.precip_mm, 1)            AS precipMm,
           round(e.discharge_mean_m3s, 2)   AS dischargeM3s
-      FROM site_health_daily AS h
-      LEFT JOIN site_env_daily AS e ON e.site_id = h.site_id AND e.day = h.day
+      FROM site_health_daily AS h FINAL
+      LEFT JOIN (SELECT * FROM site_env_daily FINAL) AS e ON e.site_id = h.site_id AND e.day = h.day
       ORDER BY h.site_id, h.day`,
   },
   {
@@ -143,9 +146,9 @@ const EXPORTS: readonly ExportSpec[] = [
           site_id                          AS siteId,
           toString(day)                    AS day,
           drivers                          AS drivers
-      FROM site_health_daily
+      FROM site_health_daily FINAL
       WHERE (site_id, day) IN (
-          SELECT site_id, max(day) FROM site_health_daily GROUP BY site_id
+          SELECT site_id, max(day) FROM site_health_daily FINAL GROUP BY site_id
       )
       ORDER BY site_id`,
   },

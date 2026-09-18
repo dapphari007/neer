@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import type { Finding, SiteSummary } from '../lib/api';
 import { GameMap } from '../components/GameMap';
 import { FindingCard } from '../components/FindingCard';
-import { num, statusColor, statusLabel, urbanClassLabel } from '../lib/format';
+import { CsvImport } from '../components/CsvImport';
+import { num, sourceLabel, statusColor, statusLabel, urbanClassLabel } from '../lib/format';
 
 /**
  * The overview.
@@ -130,6 +131,12 @@ export function Overview({ sites, findings, onSelectSite }: Props) {
                 <span style={{ minWidth: 0 }}>
                   <span className="site-row-name">{site.name}</span>
                   <span className="site-row-meta" style={{ display: 'block' }}>
+                    <span
+                      className={`prov ${sourceLabel(site.source).cls}`}
+                      style={{ marginRight: 6 }}
+                    >
+                      {sourceLabel(site.source).text}
+                    </span>
                     {urbanClassLabel(site.urbanClass)} · {statusLabel(site.status)}
                     {Number(site.activeFindingCount ?? 0) > 0 &&
                       ` · ${site.activeFindingCount} finding${Number(site.activeFindingCount) === 1 ? '' : 's'}`}
@@ -155,6 +162,13 @@ export function Overview({ sites, findings, onSelectSite }: Props) {
           </div>
         </div>
       </div>
+
+      {/* Only the live build has an API to import into; the static export is a snapshot. */}
+      {import.meta.env.VITE_API_BASE_URL && (
+        <section style={{ marginTop: 26 }}>
+          <CsvImport apiBase={String(import.meta.env.VITE_API_BASE_URL).replace(/[/]$/, '')} />
+        </section>
+      )}
 
       <section style={{ marginTop: 26 }}>
         <div style={{ marginBottom: 12 }}>

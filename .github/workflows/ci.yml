@@ -81,7 +81,7 @@ jobs:
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @neer/shared --filter @neer/scoring --filter @neer/insights build
+      - run: pnpm --filter @neer/shared --filter @neer/scoring --filter @neer/insights --filter @neer/pipeline build
 
       - name: Migrate
         run: pnpm db:migrate
@@ -110,7 +110,7 @@ jobs:
             const findings = read('findings.json');
             const fail = (m) => { console.error('FAIL: ' + m); process.exit(1); };
 
-            if (sites.length !== 12) fail('expected 12 sites, got ' + sites.length);
+            if (sites.length < 12) fail('expected at least the 12 seeded sites, got ' + sites.length);
             if (trends.length === 0) fail('no trend points produced');
             if (findings.length === 0) fail('no findings produced — the rule engine is silent');
 

@@ -108,8 +108,8 @@ SELECT
     -- unsure of still outranks a certain trivial one: the cost of missing the
     -- former exceeds the cost of investigating it.
     toUInt8(f.severity) * 10 + toUInt8(f.confidence) AS rank_score
-FROM findings AS f
-INNER JOIN sites AS s ON s.site_id = f.site_id
+FROM findings AS f FINAL
+INNER JOIN (SELECT * FROM sites FINAL) AS s ON s.site_id = f.site_id
 WHERE f.valid_until >= now()
 ORDER BY f.site_id, f.rule_id, f.day DESC
 LIMIT 1 BY f.site_id, f.rule_id;

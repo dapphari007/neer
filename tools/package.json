@@ -13,11 +13,14 @@
     "seed": "tsx src/cli.ts seed",
     "compute": "tsx src/cli.ts compute",
     "export-demo": "tsx src/cli.ts export-demo",
+    "live": "tsx src/cli.ts live",
+    "import": "tsx src/cli.ts import",
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "dependencies": {
     "@clickhouse/client": "^1.10.0",
     "@neer/insights": "workspace:*",
+    "@neer/pipeline": "workspace:*",
     "@neer/scoring": "workspace:*",
     "@neer/shared": "workspace:*"
   },

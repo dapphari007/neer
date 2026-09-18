@@ -59,6 +59,10 @@ services:
       CLICKHOUSE_DATABASE: ${CLICKHOUSE_DATABASE:-neer}
       FORECAST_PROVIDER: ${FORECAST_PROVIDER:-local}
       NARRATIVE_PROVIDER: ${NARRATIVE_PROVIDER:-template}
+      # Live layers. Both hit public keyless APIs; set to "off" without internet.
+      LIVE_WEATHER: ${LIVE_WEATHER:-on}
+      LIVE_SENSORS: ${LIVE_SENSORS:-on}
+      LIVE_SENSOR_LIMIT: ${LIVE_SENSOR_LIMIT:-6}
     ports:
       - '${API_PORT:-3000}:3000'
     healthcheck:
@@ -87,6 +91,26 @@ services:
         condition: service_healthy
     ports:
       - '${WEB_PORT:-5173}:80'
+
+  # The simulated field crew: posts one synthetic Coimbra observation every
+  # ~25 s through the same endpoint a phone app would use, so the live path —
+  # ingest, re-score, push — is exercised continuously. Simulated and labelled.
+  fieldcrew:
+    build:
+      context: .
+      dockerfile: tools/Dockerfile
+    container_name: neer-fieldcrew
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      API_URL: http://api:3000
+      LIVE_INTERVAL_MS: ${LIVE_INTERVAL_MS:-25000}
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-neer}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-neer_local_dev}
+      CLICKHOUSE_DATABASE: ${CLICKHOUSE_DATABASE:-neer}
 
 volumes:
   clickhouse-data:

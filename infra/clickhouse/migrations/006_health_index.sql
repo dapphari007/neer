@@ -112,33 +112,3 @@ CREATE TABLE IF NOT EXISTS site_health_current
 ENGINE = ReplacingMergeTree(computed_at)
 ORDER BY site_id
 COMMENT 'Trailing-window headline index per site — what the overview map reads';
-
-
--- Site dimension joined to its current headline, which is what every overview
--- query actually wants.
-CREATE VIEW IF NOT EXISTS site_health_overview AS
-SELECT
-    s.site_id                    AS site_id,
-    s.name                       AS name,
-    s.catchment                  AS catchment,
-    s.city                       AS city,
-    s.lat                        AS lat,
-    s.lon                        AS lon,
-    s.urban_class                AS urban_class,
-    s.recreational_access        AS recreational_access,
-    s.combined_sewer             AS combined_sewer,
-    s.impervious_pct             AS impervious_pct,
-    c.sohi                       AS sohi,
-    c.status                     AS status,
-    c.ecological_score           AS ecological_score,
-    c.pressure_score             AS pressure_score,
-    c.exposure_score             AS exposure_score,
-    c.confidence                 AS confidence,
-    c.sohi_low                   AS sohi_low,
-    c.sohi_high                  AS sohi_high,
-    c.drivers                    AS drivers,
-    c.n_obs                      AS n_obs,
-    c.days_since_last_obs        AS days_since_last_obs,
-    c.as_of                      AS as_of
-FROM sites AS s
-LEFT JOIN site_health_current AS c ON c.site_id = s.site_id;

@@ -115,7 +115,8 @@ export function Seafloor() {
       </svg>
       <p className="seafloor-note">
         Neer · built for the IEEE OneAquaHealth Global Hackathon 2026 · map data © OpenStreetMap
-        contributors · weather by Open-Meteo
+        contributors · weather by Open-Meteo · contains Environment Agency information © Environment
+        Agency and database right
       </p>
     </footer>
   );

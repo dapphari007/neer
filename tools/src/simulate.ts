@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { TAXON_GROUPS } from '@neer/shared';
 import { TAXON_BMWP_SCORES } from '@neer/scoring';
-import type { EnvReadingRow } from './weather';
+import type { EnvReadingRow, ObservationRow } from '@neer/pipeline';
 import type { SeedSite } from './sites';
 
 /**
@@ -59,7 +59,7 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-class Rng {
+export class Rng {
   constructor(private readonly next: () => number) {}
   static seeded(seed: number): Rng {
     return new Rng(mulberry32(seed));
@@ -134,38 +134,7 @@ const EXPERIENCE_MIX: readonly Experience[] = [
   'expert',
 ];
 
-export interface ObservationRow {
-  observation_id: string;
-  site_id: string;
-  observed_at: string;
-  observer_id: string;
-  observer_experience: Experience;
-  method: 'citizen_kit' | 'handheld_probe' | 'sensor' | 'lab';
-  source: string;
-  photo_count: number;
-  water_temp_c: number | null;
-  ph: number | null;
-  dissolved_oxygen_mgl: number | null;
-  conductivity_uscm: number | null;
-  turbidity_ntu: number | null;
-  nitrate_mgl: number | null;
-  phosphate_mgl: number | null;
-  ammonium_mgl: number | null;
-  water_colour: 'clear' | 'slightly_turbid' | 'murky' | 'discoloured';
-  odour: 'none' | 'earthy' | 'sewage' | 'chemical';
-  foam_present: number;
-  surface_film: number;
-  litter_score: number;
-  algae_cover_pct: number | null;
-  flow_state: 'dry' | 'stagnant' | 'low' | 'normal' | 'high';
-  riparian_score: number;
-  visible_discharge: number;
-  taxa_groups: string[];
-  taxa_abundance: number[];
-  notes: string;
-}
-
-interface DayContext {
+export interface DayContext {
   readonly day: string;
   readonly tempMeanC: number;
   readonly tempMaxC: number;
@@ -392,6 +361,110 @@ function sampleTaxa(trueAspt: number, rng: Rng): { groups: string[]; abundance: 
   return { groups, abundance };
 }
 
+/**
+ * One field visit at one site on one day.
+ *
+ * Exported so the live field crew can generate a single observation with the
+ * same physical model the seed uses — the seed and the live stream must not
+ * describe two different worlds.
+ */
+export function generateVisit(
+  site: SeedSite,
+  ctx: DayContext,
+  rng: Rng,
+  observers: ReadonlyArray<{ id: string; experience: Experience }>,
+  source = 'neer-simulator',
+): ObservationRow {
+  const truth = trueCondition(site, ctx, rng);
+  const observer = rng.pick(observers);
+  const profile = OBSERVER_PROFILES[observer.experience];
+
+  /** Apply observer error, then drop the reading if they did not take it. */
+  const measure = (value: number, decimals = 2): number | null => {
+    if (!rng.bool(profile.coverage)) return null;
+    const observed = value * (1 + rng.normal(0, profile.noiseCv));
+    return Number(Math.max(0, observed).toFixed(decimals));
+  };
+
+  /**
+   * pH needs additive error, not multiplicative.
+   *
+   * pH is already a logarithm, and a colour-strip kit is good to roughly
+   * half a unit wherever on the scale the reading falls. Applying the
+   * proportional error used for concentrations made a novice's reading of
+   * a neutral stream wander down to 5.8 — a biologically significant
+   * acidification that existed only in the noise model, and one that then
+   * failed the pH guideline and dragged down a pristine headwater's score.
+   */
+  const measurePh = (value: number): number | null => {
+    if (!rng.bool(profile.coverage)) return null;
+    const observed = value + rng.normal(0, profile.noiseCv * 2.5);
+    return Number(Math.min(14, Math.max(0, observed)).toFixed(1));
+  };
+
+  const hour = rng.int(9, 17);
+  const minute = rng.int(0, 59);
+
+  const pressure = site.latent.pressureLevel + 0.25 * truth.event;
+  const litterScore = clamp(Math.round(rng.float(0, 1) < pressure ? rng.int(1, 3) : 0), 0, 3);
+
+  const surveysBiology = rng.bool(profile.surveysBiology);
+  const taxa = surveysBiology
+    ? sampleTaxa(site.latent.trueAspt, rng)
+    : { groups: [], abundance: [] };
+
+  const sewageSuspected =
+    truth.eventKind === 'sewage_spill' && truth.event > 0.25
+      ? rng.bool(0.75)
+      : rng.bool(pressure * 0.25);
+
+  return {
+    observation_id: randomUUID(),
+    site_id: site.siteId,
+    observed_at: `${ctx.day} ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00.000`,
+    observer_id: observer.id,
+    observer_experience: observer.experience,
+    method: observer.experience === 'expert' ? 'handheld_probe' : 'citizen_kit',
+    source,
+    photo_count: rng.int(0, 3),
+
+    water_temp_c: measure(truth.waterTempC, 1),
+    ph: measurePh(truth.ph),
+    dissolved_oxygen_mgl: measure(truth.dissolvedOxygenMgl, 2),
+    conductivity_uscm: measure(truth.conductivityUscm, 0),
+    turbidity_ntu: measure(truth.turbidityNtu, 1),
+    nitrate_mgl: measure(truth.nitrateMgl, 2),
+    phosphate_mgl: measure(truth.phosphateMgl, 3),
+    ammonium_mgl: measure(truth.ammoniumMgl, 3),
+
+    water_colour:
+      truth.turbidityNtu > 80
+        ? 'discoloured'
+        : truth.turbidityNtu > 35
+          ? 'murky'
+          : truth.turbidityNtu > 12
+            ? 'slightly_turbid'
+            : 'clear',
+    odour: sewageSuspected ? 'sewage' : rng.bool(pressure * 0.2) ? 'earthy' : 'none',
+    foam_present: rng.bool(pressure * 0.35 + 0.3 * truth.event) ? 1 : 0,
+    surface_film: rng.bool(pressure * 0.2) ? 1 : 0,
+    litter_score: litterScore,
+    algae_cover_pct: rng.bool(profile.coverage) ? truth.algaeCoverPct : null,
+    flow_state: truth.flowState,
+    riparian_score:
+      site.urbanClass === 'semi_natural'
+        ? rng.int(2, 3)
+        : site.urbanClass === 'peri_urban'
+          ? rng.int(1, 2)
+          : rng.int(0, 1),
+    visible_discharge: rng.bool(pressure * 0.25 + 0.35 * truth.event) ? 1 : 0,
+
+    taxa_groups: taxa.groups,
+    taxa_abundance: taxa.abundance,
+    notes: '',
+  };
+}
+
 export interface SimulateOptions {
   readonly sites: readonly SeedSite[];
   readonly envReadings: readonly EnvReadingRow[];
@@ -432,96 +505,8 @@ export function simulateObservations(options: SimulateOptions): ObservationRow[]
       const visits = rng.bool(visitProbability) ? (rng.bool(0.25) ? 2 : 1) : 0;
       if (visits === 0) continue;
 
-      const truth = trueCondition(site, ctx, rng);
-
       for (let v = 0; v < visits; v++) {
-        const observer = rng.pick(observers);
-        const profile = OBSERVER_PROFILES[observer.experience];
-
-        /** Apply observer error, then drop the reading if they did not take it. */
-        const measure = (value: number, decimals = 2): number | null => {
-          if (!rng.bool(profile.coverage)) return null;
-          const observed = value * (1 + rng.normal(0, profile.noiseCv));
-          return Number(Math.max(0, observed).toFixed(decimals));
-        };
-
-        /**
-         * pH needs additive error, not multiplicative.
-         *
-         * pH is already a logarithm, and a colour-strip kit is good to roughly
-         * half a unit wherever on the scale the reading falls. Applying the
-         * proportional error used for concentrations made a novice's reading of
-         * a neutral stream wander down to 5.8 — a biologically significant
-         * acidification that existed only in the noise model, and one that then
-         * failed the pH guideline and dragged down a pristine headwater's score.
-         */
-        const measurePh = (value: number): number | null => {
-          if (!rng.bool(profile.coverage)) return null;
-          const observed = value + rng.normal(0, profile.noiseCv * 2.5);
-          return Number(Math.min(14, Math.max(0, observed)).toFixed(1));
-        };
-
-        const hour = rng.int(9, 17);
-        const minute = rng.int(0, 59);
-
-        const pressure = site.latent.pressureLevel + 0.25 * truth.event;
-        const litterScore = clamp(Math.round(rng.float(0, 1) < pressure ? rng.int(1, 3) : 0), 0, 3);
-
-        const surveysBiology = rng.bool(profile.surveysBiology);
-        const taxa = surveysBiology
-          ? sampleTaxa(site.latent.trueAspt, rng)
-          : { groups: [], abundance: [] };
-
-        const sewageSuspected =
-          truth.eventKind === 'sewage_spill' && truth.event > 0.25
-            ? rng.bool(0.75)
-            : rng.bool(pressure * 0.25);
-
-        rows.push({
-          observation_id: randomUUID(),
-          site_id: site.siteId,
-          observed_at: `${ctx.day} ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00.000`,
-          observer_id: observer.id,
-          observer_experience: observer.experience,
-          method: observer.experience === 'expert' ? 'handheld_probe' : 'citizen_kit',
-          source: 'neer-simulator',
-          photo_count: rng.int(0, 3),
-
-          water_temp_c: measure(truth.waterTempC, 1),
-          ph: measurePh(truth.ph),
-          dissolved_oxygen_mgl: measure(truth.dissolvedOxygenMgl, 2),
-          conductivity_uscm: measure(truth.conductivityUscm, 0),
-          turbidity_ntu: measure(truth.turbidityNtu, 1),
-          nitrate_mgl: measure(truth.nitrateMgl, 2),
-          phosphate_mgl: measure(truth.phosphateMgl, 3),
-          ammonium_mgl: measure(truth.ammoniumMgl, 3),
-
-          water_colour:
-            truth.turbidityNtu > 80
-              ? 'discoloured'
-              : truth.turbidityNtu > 35
-                ? 'murky'
-                : truth.turbidityNtu > 12
-                  ? 'slightly_turbid'
-                  : 'clear',
-          odour: sewageSuspected ? 'sewage' : rng.bool(pressure * 0.2) ? 'earthy' : 'none',
-          foam_present: rng.bool(pressure * 0.35 + 0.3 * truth.event) ? 1 : 0,
-          surface_film: rng.bool(pressure * 0.2) ? 1 : 0,
-          litter_score: litterScore,
-          algae_cover_pct: rng.bool(profile.coverage) ? truth.algaeCoverPct : null,
-          flow_state: truth.flowState,
-          riparian_score:
-            site.urbanClass === 'semi_natural'
-              ? rng.int(2, 3)
-              : site.urbanClass === 'peri_urban'
-                ? rng.int(1, 2)
-                : rng.int(0, 1),
-          visible_discharge: rng.bool(pressure * 0.25 + 0.35 * truth.event) ? 1 : 0,
-
-          taxa_groups: taxa.groups,
-          taxa_abundance: taxa.abundance,
-          notes: '',
-        });
+        rows.push(generateVisit(site, ctx, rng, observers));
       }
     }
   }

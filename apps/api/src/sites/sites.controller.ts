@@ -2,6 +2,7 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SitesService } from './sites.service';
 import { FindingsService } from '../findings/findings.service';
+import { ForecastProvider } from '../forecast/forecast.interface';
 import { envelope } from '../common/meta';
 
 @ApiTags('sites')
@@ -10,6 +11,7 @@ export class SitesController {
   constructor(
     private readonly sites: SitesService,
     private readonly findings: FindingsService,
+    private readonly forecaster: ForecastProvider,
   ) {}
 
   @Get('sites')
@@ -41,8 +43,35 @@ export class SitesController {
     // 200 with an empty series — which reads as "no data here" and is a very
     // different claim from "no such site".
     await this.sites.getSite(siteId);
-    const points = await this.sites.getTrend(siteId, from, to);
-    return envelope({ siteId, points, anomalies: [], forecast: [] });
+    const points = (await this.sites.getTrend(siteId, from, to)) as Array<{
+      day: string;
+      sohi: number | null;
+    }>;
+
+    // Forecast from the same series the chart draws. Advisory only — no finding
+    // or alert is ever derived from it; see docs/MODEL_CARD.md.
+    const history = points
+      .filter((p) => p.sohi !== null)
+      .map((p) => ({ day: p.day, value: p.sohi as number }));
+    const forecast = await this.forecaster.forecast({
+      siteId,
+      metric: 'sohi',
+      history,
+      horizonDays: 7,
+    });
+
+    return envelope({
+      siteId,
+      points,
+      anomalies: [],
+      forecast: forecast.points.map((f) => ({
+        ...f,
+        metric: 'sohi',
+        model: forecast.model,
+        horizonDays: 7,
+      })),
+      forecastNote: forecast.note ?? null,
+    });
   }
 
   @Get('measurements')
