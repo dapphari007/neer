@@ -1679,15 +1679,6 @@ details summary {
   .map-legend-hud {
     display: none;
   }
-  .map-region-hud {
-    top: auto;
-    right: auto;
-    left: 10px;
-    bottom: 84px;
-  }
-  .map-frame.compact .map-region-hud {
-    bottom: 14px;
-  }
   .two-col {
     grid-template-columns: 1fr !important;
   }
@@ -1848,6 +1839,19 @@ details summary {
 @media (max-width: 900px) {
   .live-pill .live-what {
     display: none;
+  }
+  /* Must follow the base .map-region-hud rule: earlier in the file, its
+     top: 14px wins and the switch stretches from top to bottom of the map. */
+  .map-region-hud {
+    top: auto;
+    right: auto;
+    max-width: calc(100% - 20px);
+    overflow-x: auto;
+    left: 10px;
+    bottom: 84px;
+  }
+  .map-frame.compact .map-region-hud {
+    bottom: 14px;
   }
 }
 

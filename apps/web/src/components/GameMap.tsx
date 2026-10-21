@@ -451,7 +451,11 @@ export function GameMap({ sites, selectedId = null, onSelect, game, compact = fa
       </div>
 
       {game && (
-        <div className="map-hud map-hud-bottom" role="toolbar" aria-label="Mark something you spotted">
+        <div
+          className="map-hud map-hud-bottom"
+          role="toolbar"
+          aria-label="Mark something you spotted"
+        >
           <span className="map-hud-hint">
             {sticker
               ? `Tap the map to drop “${sticker.label}”`
