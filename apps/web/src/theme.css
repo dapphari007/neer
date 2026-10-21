@@ -880,8 +880,17 @@ a.btn:visited {
   border-left-color: #f1fbff;
 }
 
-.hud {
+.map-hud {
+  /* Every side and size is pinned explicitly, so a host page that embeds Neer
+     cannot stretch an overlay across the map with its own stylesheet. Each
+     overlay below sets only the sides it anchors to. */
   position: absolute;
+  inset: auto;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  box-sizing: border-box;
   z-index: 6;
   background: rgba(3, 26, 54, 0.82);
   border: 1px solid var(--border-strong);
@@ -891,14 +900,14 @@ a.btn:visited {
   box-shadow: var(--shadow);
 }
 
-.hud-top {
+.map-hud-top {
   top: 14px;
   left: 14px;
   padding: 10px 14px;
   min-width: 230px;
 }
 
-.hud-level {
+.map-hud-level {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -907,7 +916,7 @@ a.btn:visited {
   font-size: 13.5px;
 }
 
-.hud-level small {
+.map-hud-level small {
   font-weight: 700;
   color: var(--text-muted);
   font-size: 12px;
@@ -928,7 +937,7 @@ a.btn:visited {
   transition: width 500ms ease;
 }
 
-.hud-bottom {
+.map-hud-bottom {
   left: 50%;
   bottom: 14px;
   transform: translateX(-50%);
@@ -940,7 +949,7 @@ a.btn:visited {
   overflow-x: auto;
 }
 
-.hud-hint {
+.map-hud-hint {
   font-size: 12.5px;
   font-weight: 700;
   color: var(--text-secondary);
@@ -950,6 +959,9 @@ a.btn:visited {
 
 .sticker-btn {
   flex: none;
+  height: auto;
+  min-height: 0;
+  margin: 0;
   display: grid;
   place-items: center;
   gap: 1px;
@@ -982,7 +994,7 @@ a.btn:visited {
   cursor: crosshair;
 }
 
-.legend-hud {
+.map-legend-hud {
   right: 14px;
   bottom: 84px;
   padding: 10px 12px;
@@ -1080,7 +1092,7 @@ a.btn:visited {
   }
 }
 
-.toast {
+.map-toast {
   position: absolute;
   z-index: 8;
   top: 14px;
@@ -1644,13 +1656,13 @@ details summary {
   .nav-link .short {
     display: inline;
   }
-  .hud-bottom {
+  .map-hud-bottom {
     left: 10px;
     right: 10px;
     transform: none;
     max-width: none;
   }
-  .hud-hint {
+  .map-hud-hint {
     display: none;
   }
   .map-canvas,
@@ -1660,20 +1672,20 @@ details summary {
   .modal {
     grid-template-columns: 1fr;
   }
-  .hud-top {
+  .map-hud-top {
     min-width: 0;
     right: 14px;
   }
-  .legend-hud {
+  .map-legend-hud {
     display: none;
   }
-  .region-hud {
+  .map-region-hud {
     top: auto;
     right: auto;
     left: 10px;
     bottom: 84px;
   }
-  .map-frame.compact .region-hud {
+  .map-frame.compact .map-region-hud {
     bottom: 14px;
   }
   .two-col {
@@ -1771,7 +1783,7 @@ details summary {
 
 /* Region switch: lives inside the frame beside the zoom control, so the map
    keeps its full height and the control reads as part of the board. */
-.region-hud {
+.map-region-hud {
   top: 14px;
   right: 54px;
   display: flex;
@@ -1781,7 +1793,13 @@ details summary {
   max-width: calc(100% - 80px);
 }
 
-.region-hud button {
+.map-region-hud button {
+  flex: none;
+  height: auto;
+  min-height: 0;
+  width: auto;
+  margin: 0;
+  line-height: 1.2;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -1799,11 +1817,11 @@ details summary {
     color 140ms ease;
 }
 
-.region-hud button:hover {
+.map-region-hud button:hover {
   color: var(--text-primary);
 }
 
-.region-hud button small {
+.map-region-hud button small {
   font-size: 11px;
   font-weight: 800;
   line-height: 1;
@@ -1812,12 +1830,12 @@ details summary {
   background: rgba(255, 255, 255, 0.12);
 }
 
-.region-hud button[aria-pressed='true'] {
+.map-region-hud button[aria-pressed='true'] {
   background: var(--glow);
   color: #03253f;
 }
 
-.region-hud button[aria-pressed='true'] small {
+.map-region-hud button[aria-pressed='true'] small {
   background: rgba(3, 37, 63, 0.18);
 }
 

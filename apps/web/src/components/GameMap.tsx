@@ -381,13 +381,13 @@ export function GameMap({ sites, selectedId = null, onSelect, game, compact = fa
       <div ref={containerRef} className="map-canvas" />
 
       {toast && (
-        <div key={toast.key} className="toast" role="status">
+        <div key={toast.key} className="map-toast" role="status">
           {toast.text}
         </div>
       )}
 
       {regions.length > 1 && (
-        <div className="hud region-hud" role="group" aria-label="Choose a region">
+        <div className="map-hud map-region-hud" role="group" aria-label="Choose a region">
           {regions.map((option) => (
             <button
               key={option}
@@ -409,8 +409,8 @@ export function GameMap({ sites, selectedId = null, onSelect, game, compact = fa
       )}
 
       {game && level && (
-        <div className="hud hud-top">
-          <div className="hud-level">
+        <div className="map-hud map-hud-top">
+          <div className="map-hud-level">
             <span>
               Lv {level.number} · {level.name}
             </span>
@@ -434,7 +434,7 @@ export function GameMap({ sites, selectedId = null, onSelect, game, compact = fa
         </div>
       )}
 
-      <div className="hud legend-hud">
+      <div className="map-hud map-legend-hud">
         {[...STATUS_ORDER].reverse().map((status) => (
           <div className="legend-row" key={status}>
             <i className="swatch" style={{ background: `var(--status-${status})` }} />
@@ -451,8 +451,8 @@ export function GameMap({ sites, selectedId = null, onSelect, game, compact = fa
       </div>
 
       {game && (
-        <div className="hud hud-bottom" role="toolbar" aria-label="Mark something you spotted">
-          <span className="hud-hint">
+        <div className="map-hud map-hud-bottom" role="toolbar" aria-label="Mark something you spotted">
+          <span className="map-hud-hint">
             {sticker
               ? `Tap the map to drop “${sticker.label}”`
               : 'Spotted something? Pick a sticker:'}
